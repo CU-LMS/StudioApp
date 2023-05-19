@@ -4,7 +4,10 @@ const User = require('../models/User');
 const Slot = require('../models/Slot');
 const sendEmail = require('./email');
 const mongoose = require('mongoose');
-const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE
+
+const BOOKINGDONEEMAILTEMPLATE = "d-b3b25068960c41d8b4fc25b626e69acc";
+
+const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE || BOOKINGDONEEMAILTEMPLATE
 const getTimingNoString = (timingNO) => {
   let time = ""
   switch (timingNO) {
@@ -122,7 +125,10 @@ router.post("/admin", verifyTokenAndAdmin, async (req, res, next) => {
 //get booking on a particular date
 router.post("/status", verifyTokenAndAuthorization, async (req, res) => {
   try {
+    console.log("In booking Status ===>");
     const slots = await Slot.find({ 'slotBookingsData.date': { $eq: new Date(req.body.date) } });
+
+    console.log("Slots ===>", slots);
     const slotNos = slots.map(slot => slot.slotNo)
     res.status(200).json(slotNos)
   } catch (err) {

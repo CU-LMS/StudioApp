@@ -41,5 +41,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8800/api"
+  "proxy": "http://3.110.203.20:8800/api"
 }

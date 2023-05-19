@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8800/api"
+const BASE_URL = "http://3.110.203.20:8800/api"
 
 
 let TOKEN;
