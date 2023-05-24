@@ -5,9 +5,9 @@ const Slot = require('../models/Slot');
 const sendEmail = require('./email');
 const mongoose = require('mongoose');
 
-const BOOKINGDONEEMAILTEMPLATE = "d-b3b25068960c41d8b4fc25b626e69acc";
+BOOKINGDONEEMAILTEMPLATE=d-e17c5fedf8c54ab68bca87e31821331e
 
-const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE || BOOKINGDONEEMAILTEMPLATE
+const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE
 const getTimingNoString = (timingNO) => {
   let time = ""
   switch (timingNO) {
@@ -52,6 +52,8 @@ router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
       "timingNo": req.body.timingNo,
       'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
     })
+
+    console.log('available slots ===>', availableSlots);
     if (!availableSlots.length) {
       return res.status(400).json({ msg: "all slots of selected dates and selected type are full now!" })
     }
@@ -64,11 +66,14 @@ router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
         'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
       },
       {
-        $push: {
+        $push: {  
           "slotBookingsData": req.body.slotBookingData
         },
       }, { new: true }
     );
+
+    console.log('updatedSlot ===>', updatedSlot);
+
     const subject = `Studio Booking confirmed`
 
 
@@ -80,11 +85,15 @@ router.post("/", verifyTokenAndAuthorization, async (req, res, next) => {
       timing: getTimingNoString(req.body.timingNo),
       slotNo: Math.trunc(randomSlotNo / 10),
     }
+
+    console.log('dymanic templates ===>', dynamicTemplateData);
+
     await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+
     res.status(200).json(`booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`)
   } catch (err) {
     res.status(401).json("there is error in backend code or postman query");
-    console.log(err)
+    console.log("err===>",err)
   }
 })
 

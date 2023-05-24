@@ -30,8 +30,8 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Hello World ");
-  console.log("Hello World")
+  res.send("Hello World from studioAPP nginx");
+  console.log("Hello World from studioAPP nginx")
 });
 
 app.use("/api/user", userRoute);
