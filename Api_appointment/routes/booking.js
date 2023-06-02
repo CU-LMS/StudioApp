@@ -171,6 +171,17 @@ router.post("/delete", async (req, res) => {
 })
 
 router.post("/history", async (req, res) => {
+  let typeOfHistoryQuery = {}
+  if(req.body.bookingsType == "upcoming"){
+    typeOfHistoryQuery = {$gt: new Date(req.body.dateString)}
+  }else if(req.body.bookingsType == "past"){
+    typeOfHistoryQuery = {$lt: new Date(req.body.dateString)}
+  }else if(req.body.bookingsType == "today"){
+    typeOfHistoryQuery = {$eq: new Date(req.body.dateString)}
+  }else{
+    const defaultQuery = {$gte: new Date(req.body.dateSring)}
+    typeOfHistoryQuery = defaultQuery
+  }
   try {
     const bookings = await Slot.aggregate([{
       '$unwind': {
@@ -178,11 +189,18 @@ router.post("/history", async (req, res) => {
       }
     }, {
       '$match': {
-        'slotBookingsData.user': new mongoose.Types.ObjectId(req.body.userId)
+        'slotBookingsData.userEmail': req.body.userEmail,
+        'slotBookingsData.date': typeOfHistoryQuery
       }
     }, {
       $project: {
         slotBookingsData: 1, slotNo: 1, studioNo: 1, type: 1, timingNo: 1, _id: 0
+      }
+    },
+    {
+      $sort: {
+        "slotBookingsData.date": 1,
+        "slotBookingsData.bookedAt": 1
       }
     }])
     res.status(201).json({ count: bookings.length, bookings })
@@ -203,7 +221,7 @@ router.post("/find", verifyTokenAndAdmin, async (req, res) => {
       }, {
         '$match': {
           'slotBookingsData.date': {
-            $gt: new Date(req.body.dateString)
+            $gte: new Date(req.body.dateString)
           }
         }
       },
@@ -236,6 +254,15 @@ router.post("/find", verifyTokenAndAdmin, async (req, res) => {
     res.json({ count: bookings.length, bookings })
   } catch (error) {
     res.json(error.message)
+  }
+})
+
+//end the booking
+router.post("/end", async(req,res)=>{
+  try {
+    const booking = await Slot.findOneAndUpdate({})
+  } catch (error) {
+    
   }
 })
 

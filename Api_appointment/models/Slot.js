@@ -9,7 +9,10 @@ const SlotSchema = mongoose.Schema({
         userEmail: {type: String, required: true},
         date: {type:Date},
         program: {type: String},
-        bookedAt: {type: Date, default: Date.now}
+        bookedAt: {type: Date, default: Date.now},
+        completed: {type: Boolean, default: false},
+        approvedBy: {type: String},
+        defaulted: {type: Boolean, default: false}
     }]
 }, { timestamps: true })
 

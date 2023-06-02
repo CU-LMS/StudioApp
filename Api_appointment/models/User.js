@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs')
 const UserSchema = mongoose.Schema({
-    name: { type: String, required: true },
+    name: { type: String},
     lastname: { type: String },
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true,match: [/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    username: { type: String, unique: true },
+    email: { type: String, unique: true,match: [/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
     "Please enter valid email"] },
-    password: { type: String, required: true },
+    password: { type: String},
     isAdmin: { type: Boolean, default: false },
     img: { type: String },
     status: {
@@ -15,7 +15,9 @@ const UserSchema = mongoose.Schema({
             message: '{Value} is not supported'
         }
     },
-    role: {type: String, default: "teacher"}
+    role: {type: String, default: "teacher"},
+    googleId: {type: String},
+    refreshTokenGoogle: {type: String}
 }, { timestamps: true });
 
 //midlleware before saving
@@ -49,4 +51,5 @@ UserSchema.methods.comparePassword = async function (secondpartypassword) {
     return isMatch
 }
 module.exports = mongoose.model("User", UserSchema);
+
 
