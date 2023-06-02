@@ -3,6 +3,7 @@ import { useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import axios from "axios"
+import { useGoogleLogin } from "@react-oauth/google"
 
 const Container = styled.div`
     width: 100vw;
@@ -77,6 +78,19 @@ const Login = () => {
             dispatch({ type: "LOGIN_FAILURE", payload: err.response.data });
         }
     }
+
+    const handleGoogleLogin = useGoogleLogin({
+        flow: 'auth-code',
+        onSuccess: (res) => {
+          console.log(res)
+          axios.post("http://localhost:8800/api/auth/google/login",{code:res.code}).then(response => console.log(response.data)).catch(err => console.log(err))
+        },
+    
+        onError: (err) => {
+          console.log(err)
+        },
+        scope: 'openid profile email https://www.googleapis.com/auth/calendar'
+      })
     return (
         <Container>
             <Wrapper>
@@ -85,6 +99,7 @@ const Login = () => {
                     <Input placeholder="email" onChange={(e) => setEmail(e.target.value)} />
                     <Input placeholder="password" type="password" onChange={(e) => setPassword(e.target.value)} />
                     <Button onClick={handleLogin} disabled={loading}>Login</Button>
+                    <Button onClick={()=>handleGoogleLogin()} disabled={loading}>Sign in with Google</Button>
                     {/* <Link>Forgot your password?</Link> */}
                     {error&&<Error>something went wrong...</Error>}
                     <Link to="/register" style={{ textDecoration: "none" }} >

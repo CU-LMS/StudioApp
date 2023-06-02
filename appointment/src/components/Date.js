@@ -20,7 +20,8 @@ const DatesPicker = ({ datePickerOpen }) => {
     // slotStatuses(dispatch, dateString)
   };
   const disabledDate = (current)=>{
-    return current>dayjs().add(2,'day') || current<dayjs().add(1,'day')
+      // calendar opened for 90 days for teachers
+    return current<dayjs().add(1,'day')  || current>dayjs().add(90,'day')
   }
   return (
     <Container>

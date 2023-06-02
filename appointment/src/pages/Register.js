@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import styled from "styled-components"
 import { publicRequest } from "../requestMethods"
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
+import axios from "axios"
 
 const Container = styled.div`
     width: 100vw;
@@ -58,44 +60,69 @@ const Text = styled.p`
    cursor: pointer;
 `
 const Register = () => {
-  const [credentials,setCredentials] = useState({
+  const [credentials, setCredentials] = useState({
     username: undefined,
     email: undefined,
     password: undefined,
 
   })
   const navigate = useNavigate()
-  const handleChange = (e)=>{
+  const handleChange = (e) => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
-  const handleRegister = async (e)=>{
+  const handleRegister = async (e) => {
     e.preventDefault()
 
     try {
-      await publicRequest.post("/auth/register",credentials)
+      await publicRequest.post("/auth/register", credentials)
       navigate("/login")
     } catch (error) {
       console.log(error)
     }
   }
+
+  const onSuccessGoogle = (res) => {
+    // console.log(res.credential)
+    axios.get("http://localhost:8800/api/auth/protected", {
+      headers: {
+        Authorization: `Bearer ${res.credential}`
+      }
+    }).then(response => console.log(response.data)).catch(err => console.log(err))
+  }
+  const onErrorGoogle = (res) => {
+
+  }
+  const googleLogintwo = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: (res) => {
+      console.log(res)
+      axios.post("http://localhost:8800/api/auth/google/register",{code:res.code}).then(response => console.log(response.data)).catch(err => console.log(err))
+    },
+
+    onError: (err) => {
+      console.log(err)
+    },
+    scope: 'openid profile email https://www.googleapis.com/auth/calendar'
+  })
   return (
     <Container>
       <Wrapper>
         <Title>CREATE AN ACCOUNT</Title>
         <Form>
-          <Input placeholder="name" type="name" id="name" onChange={(e)=>handleChange(e)}/>
-          <Input placeholder="last name" type="lastname" id="lastname" onChange={(e)=>handleChange(e)}/>
-          <Input placeholder="username" type="username" id="username" onChange={(e)=>handleChange(e)}/>
-          <Input placeholder="email" type="email" id="email" onChange={(e)=>handleChange(e)}/>
-          <Input placeholder="password" type="password" id="password" onChange={(e)=>handleChange(e)}/>
+          <Input placeholder="name" type="name" id="name" onChange={(e) => handleChange(e)} />
+          <Input placeholder="last name" type="lastname" id="lastname" onChange={(e) => handleChange(e)} />
+          <Input placeholder="username" type="username" id="username" onChange={(e) => handleChange(e)} />
+          <Input placeholder="email" type="email" id="email" onChange={(e) => handleChange(e)} required pattern="/^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/" />
+          <Input placeholder="password" type="password" id="password" onChange={(e) => handleChange(e)} />
           <Agreement>
             By creating an account, I consent to the processing of my personal data in accordance with the <b>PRIVACY POLICY</b>
           </Agreement>
-          <Button onClick={handleRegister}>CREATE</Button>
+          <Button onClick={handleRegister} type="submit">CREATE</Button>
         </Form>
         <Link to="/login" style={{ textDecoration: "none", marginTop: "6px", display: "block" }} >
           <Text>Login</Text>
         </Link>
+        <Button onClick={() => googleLogintwo()}>Continue with Google</Button>
       </Wrapper>
     </Container>
   )
