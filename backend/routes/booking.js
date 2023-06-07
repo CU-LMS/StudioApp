@@ -49,6 +49,9 @@ router.post("/", async (req, res, next) => {
       "timingNo": req.body.timingNo,
       'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
     })
+
+    console.log('available slots ===>', availableSlots);
+
     if (!availableSlots.length) {
       return res.status(400).json({ msg: "all slots of selected dates and selected type are full now!" })
     }
@@ -66,6 +69,9 @@ router.post("/", async (req, res, next) => {
         },
       }, { new: true }
     );
+
+    console.log('updatedSlot ===>', updatedSlot);
+
     const subject = `Studio Booking confirmed`
 
 
@@ -81,7 +87,8 @@ router.post("/", async (req, res, next) => {
     res.status(200).json(`booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`)
   } catch (err) {
     res.status(401).json("there is error in backend code or postman query");
-    console.log(err)
+    console.log("err===>",err)
+
   }
 })
 
@@ -122,7 +129,11 @@ router.post("/admin", async (req, res, next) => {
 //get booking on a particular date
 router.post("/status", async (req, res) => {
   try {
+    console.log("In booking Status ===>");
+
     const slots = await Slot.find({ 'slotBookingsData.date': { $eq: new Date(req.body.date) } });
+    console.log("Slots ===>", slots);
+
     const slotNos = slots.map(slot => slot.slotNo)
     res.status(200).json(slotNos)
   } catch (err) {

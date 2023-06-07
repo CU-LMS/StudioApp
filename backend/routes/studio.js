@@ -6,6 +6,7 @@ router.post("/", async(req,res)=>{
         if(req.body){
             const slot = new Slot(req.body)
             await slot.save()
+            console.log("slot created ====>", slot);
           return  res.status(201).json({msg: "slot created"})
         }else{
             return res.status(401).json({msg: "bad request"})

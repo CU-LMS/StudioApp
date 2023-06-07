@@ -8,19 +8,27 @@ const authRoute = require('./routes/auth')
 const slotRoute = require('./routes/booking')
 const createStudioRoute = require('./routes/studio')
 const programRoute = require('./routes/programRoute.js')
+
+const PORT = "8800";
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGO_URL)
-        .then(()=>{console.log("DB connection Successfull")})
-        .then(()=>app.listen(process.env.PORT || 8800,()=>{
-            console.log("Backend server is runnig")
-        }))
-        .catch((err)=>{console.log(err)});
+    .then(() => { console.log("MongoDB Database Connected Successfully") })
+    .then(() => app.listen(process.env.PORT || 8800, () => {
+        console.log("Backend server is running on Port: ", PORT);
+    }))
+    .catch((err) => { console.log(err) });
 
 app.use(cors())
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.send("Hello World from studioAPP nginx");
+    console.log("Hello World from studioAPP nginx")
+});
+
+
 app.use("/api/user", userRoute)
 app.use("/api/auth", authRoute)
-app.use("/api/booking",slotRoute )
-app.use("/api/slot",createStudioRoute)
+app.use("/api/booking", slotRoute)
+app.use("/api/slot", createStudioRoute)
 app.use("/api/program", programRoute)

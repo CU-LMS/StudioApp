@@ -13,7 +13,9 @@ const sendEmail = async (req, res, to, subject, templateId, dynamicTemplateData)
     };
     try {
         await sgMail.send(msg)
+        console.log("Email sent ");
     } catch (error) {
+        console.log("error is ===>", error);
         res.status(500).json({ msg: "there is some error", err: error.message })
         console.log(error)
     }

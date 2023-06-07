@@ -15,8 +15,14 @@ router.post("/register", async (req, res) => {
         lastname: req.body.lastname,
         name: req.body.name
     })
+
+    console.log("newUser===>", newUser);
+
     try {
         const savedUser = await newUser.save();
+
+        console.log("savedUser ====>", savedUser);
+
         const count = await User.countDocuments({})
         if (count == 1) {
             await User.findOneAndUpdate({ email: req.body.email }, {
@@ -35,7 +41,12 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         //finding user with the provided username
+        console.log("In Login ====>");
+
         const user = await User.findOne({ email: req.body.email });
+
+        console.log("User Details ====>", user);
+
 
         //if user does not exist
         if (!user) {
