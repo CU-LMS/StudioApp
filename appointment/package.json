@@ -1,7 +1,7 @@
 {
   "name": "appointment",
   "version": "0.1.0",
-  "private": true,
+  "homepage": ".",
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
     "@react-oauth/google": "^0.11.0",
