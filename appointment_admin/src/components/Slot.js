@@ -147,11 +147,11 @@ const Slot = ({ setDatePickerOpen }) => {
             title: 'Congratulations your booking is confirmed',
             content: (
                 <div>
-                    <p style={{margin: '10px', padding: '10px', fontSize: '14px', fontWeight: 'bold'}}>{data.msg}</p>
-                    <span style={{margin: '5px', padding: '5px'}}>check your registered email for further details</span>
+                    <p style={{ margin: '10px', padding: '10px', fontSize: '14px', fontWeight: 'bold' }}>{data.msg}</p>
+                    <span style={{ margin: '5px', padding: '5px' }}>check your registered email for further details</span>
                 </div>
             ),
-            onOk(){
+            onOk() {
                 setDatePickerOpen(true)
             }
         });

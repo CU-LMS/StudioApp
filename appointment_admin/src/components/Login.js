@@ -32,11 +32,9 @@ const Login = () => {
   }
   return (
 
-    <Link to={user?"/":"/login"} style={{ textDecoration: 'none' }} onClick={user?handleLogout:null}>
-      <Container disabled={loading}>
+    <Container disabled={loading} onClick={user?handleLogout:null}>
         {user?"Logout":"Login"}
       </Container>
-    </Link >
   )
 }
 

@@ -13,7 +13,8 @@ import { AuthContext } from '../context/AuthContext'
 import { LoadingOutlined } from '@ant-design/icons'
 import { useEffect } from 'react'
 import axios from 'axios'
-
+import Sucess from '../utils/Sucess'
+import ErrorMessage from '../utils/ErrorMessage'
 const SEMESTERS = [1,2,3,4,5,6,7,8]
 const PROGRAMNAMES = ["BAJMC","BBA", "BCA", "M.Com", "MAJMC", "MBA", "MCA"]
 const OuterContainer = styled.div`
@@ -28,6 +29,7 @@ const Container = styled.div`
     margin: 10px;
     padding: 10px;
     /* background-color: green; */
+    background-color: lightgrey;
     display: flex;
     flex-direction: column;
     border-radius: 8px;
@@ -101,7 +103,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     const [state, dispatchA] = useReducer(bookingReducer, INITIAL_STATE_SLOT_REDUCER)
     const { user } = useContext(AuthContext)
     const [messageApi, contextHolder] = message.useMessage();
-    const [showSlots, setShowSlots] = useState(true)
+    const [showSlots, setShowSlots] = useState(false)
     const header = {
         'Content-Type': 'application/json',
         'token': `Bearer ${user?.accestoken}`
@@ -159,21 +161,21 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     };
     const success = () => {
         messageApi.open({
-            type: 'success',
-            content: 'You have successfully booked the your slot at the studio',
+            content: <Sucess/>,
             style: {
-                marginTop: "5vh"
-            }
+                marginTop: "5vh",
+            },
+            duration: 2,
         });
     };
 
     const error = () => {
         messageApi.open({
-            type: 'error',
-            content: 'Sorry, your booking failed. Please try again!',
+            content: <ErrorMessage/>,
             style: {
                 marginTop: "5vh"
-            }
+            },
+            duration: 2,
         });
     };
     const antIcon = (
@@ -208,10 +210,10 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     useEffect(() => {
         getProgramList()
     }, [semester,programName])
-    console.log(programs)
+
     return (<OuterContainer>
         {contextHolder}
-        {!showSlots ? <Result
+        {showSlots == false ? <Result
             status="403"
             title="please select a slot and date"
             style={{ marginTop: "20vh" }}

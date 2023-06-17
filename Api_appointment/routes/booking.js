@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Slot = require('../models/Slot');
 const sendEmail = require('./email');
 const mongoose = require('mongoose');
+const QueueBooking = require('../models/QueueBooking');
 const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE
 const getTimingNoString = (timingNO) => {
   let time = ""
@@ -41,6 +42,56 @@ function getRandomItem(arr) {
   return item;
 }
 
+// random slot number from type, used in reserve booking
+const getRandomSlotNumberFromType = (type, timingNo) => {
+  let slotNos = []
+  if (type == 'numerical') {
+
+    switch (timingNo) {
+      case 1:
+        slotNos = [41]
+        break;
+      case 2:
+        slotNos = [42]
+        break;
+
+      case 3:
+        slotNos = [43]
+        break;
+
+      case 4:
+        slotNos = [44]
+        break;
+      default:
+        slotNos = [41]
+        break;
+    }
+
+  } else if (type == 'theory') {
+
+    switch (timingNo) {
+      case 1:
+        slotNos = [11, 21, 31]
+        break;
+      case 2:
+        slotNos = [12, 22, 32]
+        break;
+      case 3:
+        slotNos = [13, 23, 33]
+        break;
+
+      case 4:
+        slotNos = [14, 24, 34]
+        break;
+      default:
+        slotNos = [11, 21, 31]
+        break;
+    }
+  }
+  const randomSlotNo = getRandomItem(slotNos)
+  return randomSlotNo;
+}
+
 //create a booking
 router.post("/", async (req, res, next) => {
   try {
@@ -50,7 +101,46 @@ router.post("/", async (req, res, next) => {
       'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
     })
     if (!availableSlots.length) {
-      return res.status(400).json({ msg: "all slots of selected dates and selected type are full now!" })
+      const randomSlotNo = getRandomSlotNumberFromType(req.body.type, req.body.timingNo)
+
+      //getting waiting number
+      const queueDataNumber = await Slot.aggregate([
+        {
+          '$match': {
+            'slotNo': randomSlotNo
+          }
+        }, {
+          '$unwind': {
+            'path': '$queueData.slotBookingsData'
+          }
+        }, {
+          '$match': {
+            'queueData.slotBookingsData.date': new Date(req.body.slotBookingData.date)
+          }
+        }, {
+          '$sort': {
+            'queueData.slotBookingsData.bookedAt': 1
+          }
+        }, {
+          $project: {
+            'queueData': 1,
+            '_id': 0
+          }
+        }
+      ])
+      const newWaitingNumber = queueDataNumber.length + 1
+      const queueBookingData = { ...req.body.slotBookingData, waitingNo: newWaitingNumber }
+
+      //create reserve booking
+      await Slot.findOneAndUpdate({
+        slotNo: randomSlotNo
+      }, {
+        $push: {
+          "queueData.slotBookingsData": queueBookingData
+        }
+      })
+
+      return res.status(201).json({ msg: `reserve booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`, waitingNo: newWaitingNumber })
     }
     const slotNos = availableSlots.map(slot => slot.slotNo)
     const randomSlotNo = getRandomItem(slotNos)
@@ -82,6 +172,196 @@ router.post("/", async (req, res, next) => {
   } catch (err) {
     res.status(401).json("there is error in backend code or postman query");
     console.log(err)
+  }
+})
+
+//bulk booking
+router.post("/bulk", async (req, res) => {
+  let updateQuery = {}
+  if (req.body.type == 'studioFullDay') {
+    updateQuery = {
+      studioNo: req.body.studioNo,
+      'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
+    }
+  } else if (req.body.type == 'allFullDay') {
+    updateQuery = {
+      'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
+    }
+  }
+  try {
+    const bookings = await Slot.updateMany({
+      updateQuery
+    }, {
+      $push: {
+        slotBookingsData: req.body.slotBookingData
+      }
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ msg: error.message })
+  }
+})
+
+//create a reserve booking
+router.post("/reserve", async (req, res) => {
+  try {
+    const availableSlots = await Slot.find({
+      "type": req.body.type,
+      "timingNo": req.body.timingNo,
+      'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
+    })
+
+    if (!availableSlots.length) {
+      const randomSlotNo = getRandomSlotNumberFromType(req.body.type, req.body.timingNo)
+
+      //getting waiting number
+      const queueDataNumber = await Slot.aggregate([
+        {
+          '$match': {
+            'slotNo': randomSlotNo
+          }
+        }, {
+          '$unwind': {
+            'path': '$queueData.slotBookingsData'
+          }
+        }, {
+          '$match': {
+            'queueData.slotBookingsData.date': new Date(req.body.slotBookingData.date)
+          }
+        }, {
+          '$sort': {
+            'queueData.slotBookingsData.bookedAt': 1
+          }
+        }, {
+          $project: {
+            'queueData': 1,
+            '_id': 0
+          }
+        }
+      ])
+      const newWaitingNumber = queueDataNumber.length + 1
+      const queueBookingData = { ...req.body.slotBookingData, waitingNo: newWaitingNumber }
+
+      //create reserve booking
+      await Slot.findOneAndUpdate({
+        slotNo: randomSlotNo
+      }, {
+        $push: {
+          "queueData.slotBookingsData": queueBookingData
+        }
+      })
+
+      return res.status(201).json({ msg: `reserve booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`, waitingNo: newWaitingNumber })
+    }
+
+    const slotNos = availableSlots.map(slot => slot.slotNo)
+    const randomSlotNo = getRandomItem(slotNos)
+
+    const updatedSlot = await Slot.findOneAndUpdate(
+      {
+        "slotNo": randomSlotNo,
+        'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
+      },
+      {
+        $push: {
+          "slotBookingsData": req.body.slotBookingData
+        },
+      }, { new: true }
+    );
+
+    res.status(200).json(`booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`)
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json(error)
+  }
+})
+
+router.post("/reserve/find", async (req, res) => {
+  try {
+    const reserveBookings = await Slot.findOne({ 'slotNo': req.body.slotNo, 'queueData.slotBookingsData.userEmail': req.body.userEmail }, { queueData: 1 })
+    res.status(200).json(reserveBookings)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+router.post("/reserve/history", async (req, res) => {
+  try {
+    const reservedBookings = await Slot.aggregate([
+      {
+        '$unwind': {
+          'path': '$queueData.slotBookingsData'
+        }
+      }, {
+        '$match': {
+          'queueData.slotBookingsData.userEmail': req.body.userEmail,
+          'queueData.slotBookingsData.date': {
+            '$gte': new Date(req.body.dateString)
+          }
+        }
+      }, {
+        '$sort': {
+          'queueData.slotBookingsData.date': 1,
+          'queueData.slotBookingsData.bookedAt': 1
+        }
+      }, {
+        $project: {
+          _id: 0,
+          bookings: '$queueData.slotBookingsData',
+          slotNo: 1,
+          studioNo: 1,
+          type: 1,
+          timingNo: 1
+        }
+      }
+    ])
+    res.status(201).json({ count: reservedBookings.length, bookings: reservedBookings })
+  } catch (error) {
+    res.status(500).json({ msg: error.message })
+  }
+})
+
+router.post("/reserve/update", async (req, res) => {
+  try {
+    const reserveBookings = await Slot.findOneAndUpdate({ slotNo: req.body.slotNo }, {
+      $pop: {
+        queueData: -1
+      }
+    }, { new: true }).select({ queueData: 1 })
+    res.status(200).json(reserveBookings)
+  } catch (error) {
+    res.status(500).json(error)
+  }
+})
+
+//delete reserve booking
+router.post("/reserve/delete", async (req, res) => {
+  try {
+    //remove from queueData
+    await Slot.findOneAndUpdate({
+      'slotNo': req.body.slotNo,
+    }, {
+      $pull: {
+        "queueData.slotBookingsData": { waitingNo: req.body.waitingNo, date: new Date(req.body.date) }
+      }
+    })
+
+    //update waiting numbers of every other booking
+    await Slot.findOneAndUpdate({
+      'slotNo': req.body.slotNo,
+    }, {
+      $inc: {
+        'queueData.slotBookingsData.$[elem].waitingNo': -1
+      }
+    }, {
+      arrayFilters: [{ "elem.date": { $eq: new Date(req.body.date) }, "elem.waitingNo": { $gt: req.body.waitingNo } }]
+    }
+    )
+
+    res.status(201).json({ msg: "reseve booking deleted" })
+  } catch (error) {
+    res.status(500).json({ msg: error.message })
   }
 })
 
@@ -158,12 +438,76 @@ router.post("/status/:type", async (req, res) => {
 
 router.post("/delete", async (req, res) => {
   try {
+    //slot data from queue if it exist
+    const slotDataqueue = await Slot.find({
+      studioNo: req.body.studioNo, timingNo: req.body.timingNo
+    }, {
+      "queueData.slotBookingsData": {
+        "$filter": {
+          "input": "$queueData.slotBookingsData",
+          "cond": {
+            $and: [
+              {
+                "$eq": [
+                  "$$this.waitingNo",
+                  1
+                ]
+              },
+              {
+                "$eq": [
+                  "$$this.date",
+                  new Date(req.body.date)
+                ]
+              }
+            ]
+          }
+        }
+      },
+    })
+
+
+    //delete existing booking
     await Slot.findOneAndUpdate({ studioNo: req.body.studioNo, timingNo: req.body.timingNo }, {
       $pull: {
         slotBookingsData: { date: req.body.date }
       }
     })
-    res.json({ msg: "done" })
+    console.log(slotDataqueue)
+    if (slotDataqueue[0].queueData.slotBookingsData.length != 0) {
+
+      //push first waiting to bookingsData except waitingNo
+      const { waitingNo, ...data } = slotDataqueue[0].queueData.slotBookingsData[0]
+
+      await Slot.findOneAndUpdate({
+        studioNo: req.body.studioNo, timingNo: req.body.timingNo
+      }, {
+        $push: {
+          slotBookingsData: data
+        }
+      })
+
+      //remove from queueData
+      await Slot.findOneAndUpdate({
+        studioNo: req.body.studioNo, timingNo: req.body.timingNo
+      }, {
+        $pull: {
+          "queueData.slotBookingsData": { waitingNo: 1, date: new Date(req.body.date) }
+        }
+      })
+
+      //update waiting numbers of every other booking
+      await Slot.findOneAndUpdate({
+        studioNo: req.body.studioNo, timingNo: req.body.timingNo
+      }, {
+        $inc: {
+          'queueData.slotBookingsData.$[elem].waitingNo': -1
+        }
+      }, {
+        arrayFilters: [{ "elem.date": { $eq: new Date(req.body.date) }, "elem.waitingNo": { $gt: 1 } }]
+      }
+      )
+    }
+    res.json({ msg: "done", slotDataqueue })
   } catch (error) {
     console.log(error)
     res.json({ msg: "there is some error", err: error.message })
@@ -172,14 +516,14 @@ router.post("/delete", async (req, res) => {
 
 router.post("/history", async (req, res) => {
   let typeOfHistoryQuery = {}
-  if(req.body.bookingsType == "upcoming"){
-    typeOfHistoryQuery = {$gt: new Date(req.body.dateString)}
-  }else if(req.body.bookingsType == "past"){
-    typeOfHistoryQuery = {$lt: new Date(req.body.dateString)}
-  }else if(req.body.bookingsType == "today"){
-    typeOfHistoryQuery = {$eq: new Date(req.body.dateString)}
-  }else{
-    const defaultQuery = {$gte: new Date(req.body.dateSring)}
+  if (req.body.bookingsType == "upcoming") {
+    typeOfHistoryQuery = { $gt: new Date(req.body.dateString) }
+  } else if (req.body.bookingsType == "past") {
+    typeOfHistoryQuery = { $lt: new Date(req.body.dateString) }
+  } else if (req.body.bookingsType == "today") {
+    typeOfHistoryQuery = { $eq: new Date(req.body.dateString) }
+  } else {
+    const defaultQuery = { $gte: new Date(req.body.dateSring) }
     typeOfHistoryQuery = defaultQuery
   }
   try {
@@ -241,7 +585,7 @@ router.post("/find", async (req, res) => {
           localField: 'slotBookingsData.userEmail',
           foreignField: 'email',
           as: 'user_doc',
-          pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 }}]
+          pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 } }]
         }
       },
       {
@@ -258,11 +602,11 @@ router.post("/find", async (req, res) => {
 })
 
 //end the booking
-router.post("/end", async(req,res)=>{
+router.post("/end", async (req, res) => {
   try {
     const booking = await Slot.findOneAndUpdate({})
   } catch (error) {
-    
+
   }
 })
 

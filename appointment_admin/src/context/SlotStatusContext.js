@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useEffect, useReducer } from "react";
 import { useState } from "react";
 
 const INITIAL_STATE = {
@@ -47,6 +47,7 @@ export const SlotStatusContextProvider = ({ children }) => {
         const stringDate = yourDate.toISOString().split('T')[0]
         return stringDate
     })
+    const [bulkOn, setBulkOn] = useState(false)
     const handleSlotActive = (slotId)=>{
         setActiveId(slotId)
         //disable others except the given slotId
@@ -63,6 +64,14 @@ export const SlotStatusContextProvider = ({ children }) => {
         setDisableSlots([])
         setActiveId(null)
     }
+
+    useEffect(()=>{
+        if(bulkOn === true){
+            console.log("this ranee")
+            setDisableSlots([])
+            setActiveId(null)
+        }
+    },[bulkOn])
     return (
         <SlotStatusContext.Provider
             value={{
@@ -76,6 +85,8 @@ export const SlotStatusContextProvider = ({ children }) => {
                 unCheckSlotActive,
                 setDateString,
                 dateString,
+                bulkOn,
+                setBulkOn
             }}
         >
             {children}

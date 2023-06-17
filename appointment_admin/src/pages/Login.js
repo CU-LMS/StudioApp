@@ -3,7 +3,7 @@ import { useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 import axios from "axios"
-import { message, Button } from "antd"
+import { message} from "antd"
 import { useGoogleLogin } from "@react-oauth/google"
 import {GoogleOutlined} from "@ant-design/icons"
 
@@ -22,6 +22,9 @@ const Wrapper = styled.div`
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 `
 const Title = styled.h1`
     font-size: 24px;
@@ -37,10 +40,10 @@ const Input = styled.input`
     padding: 10px;
     margin: 10px 0;
 `
-const LoginButton = styled.button`
-    width: 40%;
+const Button = styled.button`
+    /* width: 40%; */
     border: none;
-    background-color: ${props => props.disabled ? "#6C757D" : " #d90429"};
+    background-color: ${props => props.disabled ? "#6C757D" : "#1F51FF"};
     color: white;
     cursor: ${props => props.disabled ? "not-allowed" : "pointer"};
     padding: 15px 20px;
@@ -49,7 +52,7 @@ const LoginButton = styled.button`
     font-weight: bold;
     font-size: 14px;
     &:hover {
-    background-color: #ef233c;
+    background-color: #1F51FF;
     transform: scale(0.96)
   }
 `
@@ -64,8 +67,12 @@ const Error = styled.span`
     color: red;
 `
 const Image = styled.img`
-width: 140px;
-height: 60px;
+width: 290px;
+height: 100px;
+align-self: center;
+border-radius: 5px;
+margin: 20px;
+margin-bottom: 40px;
 `
 const Login = () => {
     // const [email, setEmail] = useState("");
@@ -108,7 +115,6 @@ const Login = () => {
     const googleLogintwo = useGoogleLogin({
         flow: 'auth-code',
         onSuccess: (res) => {
-            console.log(res)
             handleLogin(res.code)
         },
 
@@ -121,7 +127,6 @@ const Login = () => {
         <Container>
             {contextHolder}
             <Wrapper>
-                <Title>LOGIN</Title>
                 <Image src="https://www.cuchd.in/about/assets/images/cu-logo.png" />
                 {/* <Form>
                     <Input value={email} placeholder="email" onChange={(e) => setEmail(e.target.value)} />
@@ -133,8 +138,10 @@ const Login = () => {
                         <Text>Create an Account</Text>
                     </Link>
                 </Form> */}
-                <GoogleOutlined />
-                <LoginButton onClick={()=>googleLogintwo()} disabled={loading}>Sign in with google</LoginButton>
+                {/* <GoogleOutlined />
+                <LoginButton onClick={()=>googleLogintwo()} disabled={loading}>Sign in with google</LoginButton> */}
+                <Button onClick={() => googleLogintwo()} disabled={loading}><GoogleOutlined style={{marginRight: "5px", fontSize:"20px"}}/>Sign in with Google</Button>
+                {error && <Error>something went wrong...</Error>}
             </Wrapper>
         </Container>
     )
