@@ -99,7 +99,7 @@ const Login = () => {
         });
         dispatch({ type: "LOGIN_START" });
         try {
-            const res = await axios.post("/auth/google/login", { code:code });
+            const res = await axios.post("http://3.110.176.68/api/auth/google/login", { code:code });
             messageApi.destroy()
             dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
             checkAdmin(res.data)

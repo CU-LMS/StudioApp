@@ -201,7 +201,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
 
     const getProgramList = async () => {
         try {
-            const res = await axios.get(`http://localhost:8800/api/program?semester=${semester}&programName=${programName}`)
+            const res = await axios.get(`http://3.110.176.68/api/program?semester=${semester}&programName=${programName}`)
             setPrograms(res.data.programs)
         } catch (error) {
             console.log(error)
