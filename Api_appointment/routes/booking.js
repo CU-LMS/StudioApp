@@ -4,6 +4,8 @@ const User = require('../models/User');
 const Slot = require('../models/Slot');
 const sendEmail = require('./email');
 const mongoose = require('mongoose');
+const { oAuth2Client } = require('../middleware/verifyGoogle');
+const { google } = require('googleapis');
 const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE
 const getTimingNoString = (timingNO) => {
   let time = ""
@@ -91,6 +93,90 @@ const getRandomSlotNumberFromType = (type, timingNo) => {
   return randomSlotNo;
 }
 
+const createEvent = async (refreshToken, dateString, startTimeString, endTimeSting, description,res) => {
+  try {
+    // oAuth2Client.setCredentials({ refresh_token: refreshToken })
+    // const calendar = google.calendar('v3')
+    // const response = await calendar.events.insert({
+    //     auth: oAuth2Client,
+    //     calendarId: 'primary',
+    //     requestBody: {
+    //         summary: 'This is a summary for the event',
+    //         description: 'This is the description',
+    //         location: 'Chandigarh University',
+    //         colorId: '7',
+    //         start: {
+    //             dateTime: new Date("2023-07-03 14:30:00")
+    //         },
+    //         end: {
+    //             dateTime: new Date("2023-07-03 15:15:00")
+    //         }
+    //     }
+    // })
+    // res.json(response)
+    oAuth2Client.setCredentials({ refresh_token: refreshToken })
+    const calendar = google.calendar('v3')
+    const response = await calendar.events.insert({
+      auth: oAuth2Client,
+      calendarId: 'primary',
+      requestBody: {
+        summary: 'Studio Ticket',
+        description: description,
+        location: 'Chandigarh University',
+        colorId: '7',
+        start: {
+          dateTime: new Date(`${dateString} ${startTimeString}`)
+        },
+        end: {
+          dateTime: new Date(`${dateString} ${endTimeSting}`)
+        }
+      }
+    })
+  } catch (error) {
+    res.status(400).json({ msg: error.message })
+  }
+}
+
+const getStartTimeFromTimingNo = (timingNo) => {
+  let startTime = ''
+  switch (timingNo) {
+    case 1:
+      startTime = '10:00:00'
+      break;
+    case 2:
+      startTime = '11:30:00'
+      break;
+    case 3:
+      startTime = '14:00:00'
+      break;
+    case 4:
+      startTime = '15:15:00'
+      break;
+    default:
+      break;
+  }
+  return startTime
+}
+const getEndTimeFromTimingNo = (timingNo) => {
+  let endTime = ''
+  switch (timingNo) {
+    case 1:
+      endTime = '11:00:00'
+      break;
+    case 2:
+      endTime = '12:30:00'
+      break;
+    case 3:
+      endTime = '13:00:00'
+      break;
+    case 4:
+      endTime = '16:15:00'
+      break;
+    default:
+      break;
+  }
+  return endTime
+}
 //create a booking
 router.post("/", async (req, res, next) => {
   try {
@@ -167,6 +253,9 @@ router.post("/", async (req, res, next) => {
       slotNo: Math.trunc(randomSlotNo / 10),
     }
     await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+    const user = await User.findOne({ email: req.body.email })
+    const refresToken = user.refreshTokenGoogle
+    await createEvent(refresToken, req.body.slotBookingData.date, getStartTimeFromTimingNo(req.body.timingNo), getEndTimeFromTimingNo(req.body.timingNo))
     res.status(200).json(`booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`)
   } catch (err) {
     res.status(401).json("there is error in backend code or postman query");
@@ -176,25 +265,19 @@ router.post("/", async (req, res, next) => {
 
 //bulk booking
 router.post("/bulk", async (req, res) => {
-  let updateQuery = {}
-  if (req.body.type == 'studioFullDay') {
-    updateQuery = {
-      studioNo: req.body.studioNo,
-      'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
-    }
-  } else if (req.body.type == 'allFullDay') {
-    updateQuery = {
-      'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
-    }
+  let updateQuery = {
+    slotNo: { $in: req.body.slotNos },
+    'slotBookingsData.date': { $ne: new Date(req.body.slotBookingData.date) }
   }
   try {
-    const bookings = await Slot.updateMany({
+    const bookings = await Slot.updateMany(
       updateQuery
-    }, {
-      $push: {
-        slotBookingsData: req.body.slotBookingData
-      }
-    })
+      , {
+        $push: {
+          slotBookingsData: req.body.slotBookingData
+        }
+      })
+    res.status(200).json(`booking has been made in studio`)
   } catch (error) {
     console.log(error)
     res.status(500).json({ msg: error.message })

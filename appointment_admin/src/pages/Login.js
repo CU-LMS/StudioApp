@@ -6,6 +6,7 @@ import axios from "axios"
 import { message} from "antd"
 import { useGoogleLogin } from "@react-oauth/google"
 import {GoogleOutlined} from "@ant-design/icons"
+import { publicRequest } from "../requestMethods"
 
 const Container = styled.div`
     width: 100vw;
@@ -99,7 +100,7 @@ const Login = () => {
         });
         dispatch({ type: "LOGIN_START" });
         try {
-            const res = await axios.post("http://3.110.176.68/api/auth/google/login", { code:code });
+            const res = await publicRequest.post("/auth/google/login", { code:code });
             messageApi.destroy()
             dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
             checkAdmin(res.data)

@@ -1,5 +1,5 @@
 
-import styled from 'styled-components'
+import styled, { createGlobalStyle } from 'styled-components'
 import Column from './Column'
 import { data } from '../data'
 import { useReducer, useState } from 'react'
@@ -12,6 +12,7 @@ import { ACTION_TYPE, INITIAL_STATE_SLOT_REDUCER, bookingReducer } from '../redu
 import { AuthContext } from '../context/AuthContext'
 import { LoadingOutlined } from '@ant-design/icons'
 import { useEffect } from 'react'
+
 const OuterContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -51,10 +52,13 @@ const Name = styled.p`
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
-    align-items: center
+    align-items: center;
+    color: #ffffffff;
 `
 const Span = styled.span`
-    font-size: 10px
+    font-size: 10px;
+    color: #ffffffff;
+    font-weight: 400;
 `
 const Button = styled.button`
 width: 40%;
@@ -85,16 +89,24 @@ const Title = styled.h3`
 const Form = styled.form`
 `
 const Input = styled.input`
+    cursor: ${props=>props.disabled == true? 'not-allowed': "pointer"};
+    width: 14px;
+    height: 14px;      
 `
 const Slot = ({ setDatePickerOpen }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const { activeId, dateString, unCheckSlotActive, dispatch, loading } = useContext(SlotStatusContext)
+    const { activeId, dateString, unCheckSlotActive, dispatch, loading, bookedSlots, handleBulkOnActive, setBulkOn, bulkIdsActive } = useContext(SlotStatusContext)
     const [program, setProgram] = useState("")
     const [state, dispatchA] = useReducer(bookingReducer, INITIAL_STATE_SLOT_REDUCER)
     const { user } = useContext(AuthContext)
     const [messageApi, contextHolder] = message.useMessage();
     const [showButton, setShowButton] = useState(true)
     const handleBook = () => {
+        if (fullSlot) {
+            setDatePickerOpen(false)
+            setIsModalOpen(true)
+            return;
+        }
         if (activeId !== null) {
             setDatePickerOpen(false)
             setIsModalOpen(true)
@@ -108,6 +120,41 @@ const Slot = ({ setDatePickerOpen }) => {
     }
     const handleOk = async (e) => {
         e.preventDefault()
+        if (fullSlot) {
+            setDatePickerOpen(true)
+            setIsModalOpen(false)
+            dispatchA({ type: ACTION_TYPE.BOOKING_START })
+            const convertedArray = checkedState.map((element, index) => {
+                if (element === true) {
+                    return index + 1;
+                }
+            }).filter(Boolean);
+            try {
+                const res = await userRequest.post("/booking/bulk", {
+                    slotNos: bulkIdsActive,
+                    email: user.email,
+                    slotBookingData: {
+                        user: user._id,
+                        program: program,
+                        date: dateString,
+                        userEmail: user.email
+                    }
+                })
+                dispatchA({ type: ACTION_TYPE.BOOKING_SUCCESS })
+                unCheckSlotActive()
+                slotStatuses(dispatch, dateString)
+                success(res.data)
+                setFullSlot(false)
+                setBulkOn(false)
+                setCheckedState(new Array(data.length).fill(false))
+                handleBulkOnActive([])
+                return;
+            } catch (err) {
+                dispatchA({ type: ACTION_TYPE.BOOKING_FAIL })
+                error()
+                return;
+            }
+        }
         setDatePickerOpen(true)
         setIsModalOpen(false)
         dispatchA({ type: ACTION_TYPE.BOOKING_START })
@@ -196,17 +243,47 @@ const Slot = ({ setDatePickerOpen }) => {
             }
         };
         compareDates()
+        setFullSlot(false)
+        setBulkOn(false)
+        setCheckedState(new Array(data.length).fill(false))
+        handleBulkOnActive([])
     }, [dateString])
 
+    const [checkedState, setCheckedState] = useState(new Array(data.length).fill(false))
+    const [fullSlot, setFullSlot] = useState(false)
+    const handleOnChangeSelect = (position) => {
+        const updatedCheckedState = checkedState.map((item, index) =>
+            index === position ? !item : item
+        )
+        setCheckedState(updatedCheckedState);
+        handleButtonTypeShow(updatedCheckedState)
+        const convertedArray = updatedCheckedState.map((element, index) => {
+            if (element === true) {
+                return index + 1;
+            }
+        }).filter(Boolean);
+        handleBulkOnActive(convertedArray)
+    }
+    const handleButtonTypeShow = (arrOfState) => {
+        if (arrOfState.includes(true)) {
+            setFullSlot(true)
+            setBulkOn(true)
+            unCheckSlotActive()
+        } else {
+            setFullSlot(false)
+            setBulkOn(false)
+        }
+    }
+    console.log(bulkIdsActive)
     return (<OuterContainer>
         {contextHolder}
         <Container>
             <Spin indicator={antIcon} spinning={state.posting || loading} size='large'>
                 <Studio>
-                    <Name>Studio 1<Span>theory</Span></Name>
-                    <Name>Studio 2<Span>theory</Span></Name>
-                    <Name>Studio 3<Span>theory</Span></Name>
-                    <Name>Studio 4<Span>numerical</Span></Name>
+                    <Name>Studio 1<Span>theory</Span><Input type='checkbox' id='studio1' disabled={bookedSlots.some(r => data[0].ids.includes(r))} checked={checkedState[0]} onChange={() => handleOnChangeSelect(0)} /></Name>
+                    <Name>Studio 2<Span>theory</Span><Input type='checkbox' id='studio2' disabled={bookedSlots.some(r => data[1].ids.includes(r))} checked={checkedState[1]} onChange={() => handleOnChangeSelect(1)} /></Name>
+                    <Name>Studio 3<Span>theory</Span><Input type='checkbox' id='studio3' disabled={bookedSlots.some(r => data[2].ids.includes(r))} checked={checkedState[2]} onChange={() => handleOnChangeSelect(2)} /></Name>
+                    <Name>Studio 4<Span>numerical</Span><Input type='checkbox' id='studio4' disabled={bookedSlots.some(r => data[3].ids.includes(r))} checked={checkedState[3]} onChange={() => handleOnChangeSelect(3)} /></Name>
                 </Studio>
                 <Slots>
                     {data.map((item) => {
@@ -215,7 +292,8 @@ const Slot = ({ setDatePickerOpen }) => {
                 </Slots>
             </Spin>
         </Container>
-        {showButton && <Button onClick={handleBook} disable={state.posting || loading}>Book Now</Button>}
+        {showButton && !fullSlot && <Button onClick={handleBook} disable={state.posting || loading}>Book Now</Button>}
+        {fullSlot && showButton && <Button onClick={handleBook} disable={state.posting || loading}>Book Full Slot</Button>}
         <Modal title={`You are booking slot ${activeId % 10} of studio ${Math.floor(activeId / 10)}`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
             <Title>Enter the program</Title>
             <Form>

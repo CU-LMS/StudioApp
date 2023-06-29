@@ -15,6 +15,7 @@ const Left = styled.div`
 
 `
 const Greeting = styled.h1`
+color: '#ffffffff'
 `
 const Right = styled.div`
 

@@ -7,6 +7,12 @@ import { slotStatuses, slotStatusesWithType } from '../context/apiCalls';
 import { useContext } from 'react';
 import { SlotStatusContext } from '../context/SlotStatusContext';
 import { Radio, Space } from 'antd';
+
+const OuterContainer = styled.div`
+    /* background: hsla(355, 77%, 52%, 1);
+    background: radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, #002142 85%);
+    background: -webkit-radial-gradient(circle, hsla(355, 77%,52%,1)0%); */
+`
 const Container = styled.div`
     display: flex;
     justify-content: space-evenly;
@@ -67,13 +73,12 @@ const Home = () => {
     //     // slotStatusesWithType(dispatch,stringDate,slotType)
     // }, [slotType,stringDate])
     return (
-        <>
-            <Navbar />
+        <OuterContainer>            <Navbar />
             <Container>
                 <DatesPicker datePickerOpen={datePickerOpen} />
                 <RadioContainer>
-                    <Radio.Group onChange={onChange} value={slotType} size='large' style={{backgroundColor: "lightgrey", padding: '10px', borderRadius: '10px'}}>
-                        <Space direction='vertical' style={{margin: '8px', padding: '8px'}}>
+                    <Radio.Group onChange={onChange} value={slotType} size='large' style={{ backgroundColor: "lightgrey", padding: '10px', borderRadius: '10px' }}>
+                        <Space direction='vertical' style={{ margin: '8px', padding: '8px' }}>
                             <Radio value='theory'>Theory</Radio>
                             <Radio value='numerical'>Numerical</Radio>
                         </Space>
@@ -89,7 +94,8 @@ const Home = () => {
                 </RadioContainer>
                 <Slot setDatePickerOpen={setDatePickerOpen} slotType={slotType} setSlotType={setSlotType} />
             </Container>
-        </>
+        </OuterContainer>
+
     )
 }
 

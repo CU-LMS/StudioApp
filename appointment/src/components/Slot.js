@@ -60,7 +60,7 @@ const Name = styled.p`
     align-self: center;
 `
 const Button = styled.button`
-width: 40%;
+/* width: 40%; */
 height: 40px;
  background-color: ${props => props.disable ? "#6C757D" : "#d90429"};
   color: white;
@@ -201,7 +201,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
 
     const getProgramList = async () => {
         try {
-            const res = await axios.get(`http://3.110.176.68/api/program?semester=${semester}&programName=${programName}`)
+            const res = await publicRequest.get(`/program?semester=${semester}&programName=${programName}`)
             setPrograms(res.data.programs)
         } catch (error) {
             console.log(error)

@@ -112,7 +112,7 @@ router.post("/google/register", async (req, res) => {
 router.post("/google/login", async (req, res) => {
     // console.log(req.body)
     const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
-    // console.log(tokens);
+    console.log(tokens);
 
     const ticket = await oAuth2Client.verifyIdToken({
         idToken: tokens.id_token,
@@ -128,6 +128,12 @@ router.post("/google/login", async (req, res) => {
         if(user.status == 'pending'){
             return res.status(401).json({msg: "not approved by admin yet"})
         }
+        //updating refresh token
+        await User.findOneAndUpdate({
+            googleId: payload.sub
+        },{
+            refreshTokenGoogle: tokens.refresh_token
+        })
         const {refreshTokenGoogle,...data} = user._doc
         return res.status(201).json({ ...data, ...payload })
     }
@@ -144,31 +150,6 @@ router.get('/protected/calendar/refresh-token', async (req, res) => {
     res.json(credentials);
 })
 
-router.get("/create-event", async (req, res) => {
-    try {
-        oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN })
-        const calendar = google.calendar('v3')
-        const response = await calendar.events.insert({
-            auth: oAuth2Client,
-            calendarId: 'primary',
-            requestBody: {
-                summary: 'This is a summary for the event',
-                description: 'This is the description',
-                location: 'Chennai, India',
-                colorId: '7',
-                start: {
-                    dateTime: new Date("2023-06-03 14:30:00")
-                },
-                end: {
-                    dateTime: new Date("2023-06-03 15:15:00")
-                }
-            }
-        })
-        res.json(response)
-    } catch (error) {
-        res.status(400).json({ msg: error.message })
-    }
-})
 
 //first response when signed in
 //   access_token

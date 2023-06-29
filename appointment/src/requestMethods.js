@@ -13,9 +13,9 @@ const getToken = ()=>{
 getToken()
 
 export const publicRequest = axios.create({
-    baseURL: PRODUCTION_URL
+    baseURL: BASE_URL
 })
 export const userRequest = axios.create({
-    baseURL: PRODUCTION_URL,
+    baseURL: BASE_URL,
     headers: {token: `Bearer ${TOKEN}`}
 })

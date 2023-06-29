@@ -160,7 +160,7 @@ const MyBookings = () => {
                         <Space direction='horizontal'>
                             <Radio value='today'>Today</Radio>
                             <Radio value='upcoming'>Upcoming</Radio>
-                            <Radio value='past'>Past</Radio>
+                            <Radio value='past'>Previous</Radio>
                             <Radio value='waiting'>Waiting</Radio>
                         </Space>
                     </Radio.Group>

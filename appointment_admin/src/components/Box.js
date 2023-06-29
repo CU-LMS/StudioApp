@@ -12,7 +12,7 @@ const BoxContainer = styled.div`
     display:flex;
     align-items: center;
     justify-content: center;
-    background-color:  ${props => props.booked ? "#6C757D" : (props.active ? "#ef233c" : "#DEE2E6")};
+    background-color:  ${props => props.booked ? "#6C757D" : (props.active ? "#ef233c" : (props.bulkActive? "#d38200": "#DEE2E6"))};
     margin: 8px;
     border-radius: 8px;
     border-style: solid;
@@ -27,13 +27,14 @@ const BoxContainer = styled.div`
 const Text = styled.p``
 const Box = ({ slot }) => {
     const [active, setActive] = useState(false)
-    const { bookedSlots,activeId,handleSlotActive,disableSlots,unCheckSlotActive,dateString,loading} = useContext(SlotStatusContext)
+    const { bookedSlots,activeId,handleSlotActive,disableSlots,unCheckSlotActive,dateString,loading,bulkIdsActive,bulkOn} = useContext(SlotStatusContext)
     const handleClick = (slotId) => {
-        if (!bookedSlots.includes(slot.id) && !disableSlots.includes(slotId)) {
+
+        if (!bookedSlots.includes(slot.id) && !disableSlots.includes(slotId) && !bulkOn) {
             if(activeId === slotId){
             setActive(prev => !prev)
             unCheckSlotActive()
-            }else{
+            }else if(!bulkOn){
                 setActive(prev=>!prev)
                 handleSlotActive(slotId)
             }
@@ -42,9 +43,14 @@ const Box = ({ slot }) => {
     useEffect(()=>{
          setActive(false)
     },[dateString,loading])
+    useEffect(()=>{
+        if(bulkOn == true){
+            setActive(false)
+        }
+    },[bulkOn])
     return (
         <Tooltip title={bookedSlots.includes(slot.id)?"booked": (disableSlots.includes(slot.id)?"unselect previous":null)} color={bookedSlots.includes(slot.id)?"cyan":"red"}>
-        <BoxContainer active={active} onClick={() => handleClick(slot.id)} booked={bookedSlots.includes(slot.id)} disable={disableSlots.includes(slot.id)}>
+        <BoxContainer active={active} onClick={() => handleClick(slot.id)} booked={bookedSlots.includes(slot.id)} disable={disableSlots.includes(slot.id)} bulkActive={bulkIdsActive.includes(slot.id)}>
             <Text>{slot.time}</Text>
         </BoxContainer>
         </Tooltip>

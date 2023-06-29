@@ -1,5 +1,6 @@
 import { createContext, useEffect, useReducer } from "react";
 import { useState } from "react";
+import { data } from "../data";
 
 const INITIAL_STATE = {
     bookedSlots: [],
@@ -7,7 +8,7 @@ const INITIAL_STATE = {
     error: null,
 };
 const SLOT_NO_LIST = [
-    11,12,13,14,21,22,23,24,31,32,33,34,41,42,43,44
+    11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34, 41, 42, 43, 44
 ]
 export const SlotStatusContext = createContext(INITIAL_STATE);
 
@@ -38,9 +39,9 @@ const SlotStatusReducer = (state, action) => {
 
 export const SlotStatusContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(SlotStatusReducer, INITIAL_STATE);
-    const [activeId,setActiveId] = useState(null)
-    const [disableSlots,setDisableSlots] = useState([])
-    const [dateString,setDateString] = useState(()=>{
+    const [activeId, setActiveId] = useState(null)
+    const [disableSlots, setDisableSlots] = useState([])
+    const [dateString, setDateString] = useState(() => {
         let yourDate = new Date()
         const offset = yourDate.getTimezoneOffset()
         yourDate = new Date(yourDate.getTime() - (offset * 60 * 1000))
@@ -48,30 +49,42 @@ export const SlotStatusContextProvider = ({ children }) => {
         return stringDate
     })
     const [bulkOn, setBulkOn] = useState(false)
-    const handleSlotActive = (slotId)=>{
+    const [bulkIdsActive, setBulkIdsActive] = useState([])
+
+    const handleSlotActive = (slotId) => {
         setActiveId(slotId)
         //disable others except the given slotId
         disableOthers(slotId)
     }
-    const disableOthers = (slotId)=>{
+    const disableOthers = (slotId) => {
         //disable others except the slotId given in arguments
-        const list = SLOT_NO_LIST.filter((slotNo)=>{
-          return slotNo !==slotId
+        const list = SLOT_NO_LIST.filter((slotNo) => {
+            return slotNo !== slotId
         })
         setDisableSlots(list)
     }
-    const unCheckSlotActive = ()=>{
+    const unCheckSlotActive = () => {
         setDisableSlots([])
         setActiveId(null)
     }
-
-    useEffect(()=>{
-        if(bulkOn === true){
+    const handleBulkOnActive = (studioNos) => {
+        unCheckSlotActive();
+        const newArr = data.flatMap((item, index) => {
+            if (studioNos.includes(item.idx + 1)) {
+                return item.ids
+            } else {
+                return []
+            }
+        })
+        setBulkIdsActive(newArr)
+    }
+    useEffect(() => {
+        if (bulkOn === true) {
             console.log("this ranee")
             setDisableSlots([])
             setActiveId(null)
         }
-    },[bulkOn])
+    }, [bulkOn])
     return (
         <SlotStatusContext.Provider
             value={{
@@ -86,7 +99,9 @@ export const SlotStatusContextProvider = ({ children }) => {
                 setDateString,
                 dateString,
                 bulkOn,
-                setBulkOn
+                setBulkOn,
+                handleBulkOnActive,
+                bulkIdsActive
             }}
         >
             {children}

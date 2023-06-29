@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = "http://localhost:8800/api"
-const PRODUCTION_URL = "http://3.110.176.68/api"
+const PRODUCTION_URL = "https://api.ankushgupta.me/api"
 
 let TOKEN;
 const getToken = ()=>{
@@ -12,9 +12,9 @@ const getToken = ()=>{
 getToken()
 
 export const publicRequest = axios.create({
-    baseURL: PRODUCTION_URL
+    baseURL: BASE_URL
 })
 export const userRequest = axios.create({
-    baseURL: PRODUCTION_URL,
+    baseURL: BASE_URL,
     headers: {token: `Bearer ${TOKEN}`}
 })

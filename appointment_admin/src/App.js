@@ -10,6 +10,7 @@ import Sidebar from "./components/Sidebar";
 import styled from "styled-components";
 import './App.css'
 import PageLayout from './PageLayout'
+import Programs from "./pages/Programs";
 
 function App() {
   const { user } = useContext(AuthContext)
@@ -17,10 +18,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route exact path="/" element={user?.isAdmin ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/requests" element={<Requests />} />
+        <Route path="/login" element={user?.isAdmin ?<Home/>:<Login />} />
+        <Route path="/register" element={user?.isAdmin ?<Home/>:<Register />} />
+        <Route path="/users" element={user?.isAdmin ?<Users />: <Login/>} />
+        <Route path="/requests" element={user?.isAdmin ?<Requests />: <Login/>} />
+        <Route path="/programs" element={user?.isAdmin ?<Programs />: <Login/>} />
       </Routes>
     </BrowserRouter>
   );
