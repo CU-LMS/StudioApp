@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import styled from 'styled-components'
-import { Result, Space, Spin, Table, Tag, message } from 'antd';
+import { Result, Space, Spin, Table, Tag, message, Button, Modal } from 'antd';
 import Navbar from '../components/Navbar';
 import axios from 'axios';
 import { getUsers } from '../context/apiCalls';
 import { userRequest } from '../requestMethods';
-import { DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import ResponsivePagination from 'react-responsive-pagination';
+import 'react-responsive-pagination/themes/classic.css';
 
 
 const Container = styled.div`
@@ -17,26 +19,53 @@ const User = styled.div`
   flex-direction: column;
   width: 100%;
 `
-const Button = styled.button`
+const ButtonLocal = styled.button`
   border: none;
   margin-left: 5px;
   margin-right: 5px;
   padding: 2px;
 `
+const Pagination = styled.div`
+  
+`
+const OuterDiv = styled.div`
+  
+`
 const Users = () => {
 
   const [users, setUsers] = useState([])
   const [messageApi, contextHolder] = message.useMessage();
-  const [loading,setLoading]= useState(true)
+  const [loading, setLoading] = useState(true)
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1)
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    async function getUsers() {
+      setLoading(true)
+      setUsers([])
+      const res = await userRequest.get(`/user?page=${page}&limit=10`)
+      setLoading(false)
+      return res
+    }
+    getUsers().then((res) => {
+      setUsers(res.data.users)
+      setTotalPages(res.data.count)
+    })
+  }
 
   useEffect(() => {
     async function getUsers() {
       setLoading(true)
-      const res = await userRequest.get("/user")
+      const res = await userRequest.get("/user?page=1&limit=10")
       setLoading(false)
       return res
     }
-    getUsers().then((res) => setUsers(res.data.users))
+    getUsers().then((res) => {
+      setUsers(res.data.users)
+      setTotalPages(res.data.count)
+    })
   }, [])
 
   const handleDelete = async (userId) => {
@@ -78,6 +107,34 @@ const Users = () => {
     getUsers().then((res) => setUsers(res.data.users))
     success()
   }
+
+  const [loadingModal, setLoadingModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [newSelectedRole, setNewSelectedRole] = useState(null)
+  const showModal = (user) => {
+    setOpen(true);
+    setSelectedUser(user)
+  };
+  const handleOk = async () => {
+    setLoadingModal(true);
+    if (newSelectedRole) {
+      await userRequest.post(`user/role/${selectedUser._id}`, {
+        role: newSelectedRole
+      })
+      setCurrentPage(1)
+      setLoadingModal(false)
+      success()
+    }
+    setOpen(false)
+  };
+  const handleCancel = () => {
+    setOpen(false);
+  };
+
+  const handleChangeSelect = (e) => {
+    setNewSelectedRole(e.target.value)
+  }
   const warning = () => {
     messageApi.open({
       type: 'warning',
@@ -118,49 +175,95 @@ const Users = () => {
       <User>
         <Navbar />
         <Spin indicator={antIcon} spinning={loading} size='large'>
-       { users.length>0? <table className='table text-center table-striped table-hover table-bordered'>
-          <tbody>
-            <tr>
-              <th>
-                ID
-              </th>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-            {
-              users?.map(user => {
-                return (
-                  <tr key={user._id}>
-                    <td>{user._id}</td>
-                    <td>{user.name}</td>
-                    <td>{user.lastname}</td>
-                    <td>{user.username}</td>
-                    <td>{user.email}</td>
-                    <td>{user.role}</td>
-                    <td>{user.status}</td>
-                    <td>
-                     {user.role== "admin"? null: <Button onClick={() => handleDelete(user._id)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button>}
-                      {user.role == "admin"? null: <Button onClick={() => handleStatus(user._id, user.status)}>{user.status == "approved" ? <CloseCircleOutlined style={{ color: "red", fontSize: "18px" }} /> : <CheckCircleOutlined style={{ color: "green", fontSize: "18px" }} />}</Button>}
-                    </td>
-                  </tr>
-                )
-              })
-            }
-          </tbody>
+          {users.length > 0 ? <><table className='table text-center table-striped table-hover table-bordered'>
+            <tbody>
+              <tr>
+                <th>
+                  ID
+                </th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+              {
+                users?.map(user => {
+                  return (
+                    <tr key={user._id}>
+                      <td>{user._id}</td>
+                      <td>{user.name}</td>
+                      <td>{user.lastname}</td>
+                      <td>{user.username}</td>
+                      <td>{user.email}</td>
+                      <td>{user.role}</td>
+                      <td>{user.status}</td>
+                      <td>
+                        {user.role == "admin" ? null : <ButtonLocal onClick={() => handleDelete(user._id)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></ButtonLocal>}
+                        {user.role == "admin" ? null : <ButtonLocal onClick={() => handleStatus(user._id, user.status)}>{user.status == "approved" ? <CloseCircleOutlined style={{ color: "red", fontSize: "18px" }} /> : <CheckCircleOutlined style={{ color: "green", fontSize: "18px" }} />}</ButtonLocal>}
+                        {<ButtonLocal onClick={() => showModal(user)}>{<UserSwitchOutlined style={{ fontSize: '18px', margin: '2px' }} />}</ButtonLocal>}
+                      </td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
 
-        </table>: !loading &&
-            <Result
-              status="404"
-              title="There are no users registered"
-              subTitle="It's is sad to know that, know one is using this app"
-              style={{ margin: '60px' }}
-            />
+          </table>
+            <Pagination>
+              <ResponsivePagination
+                current={currentPage}
+                total={totalPages}
+                onPageChange={page => handlePageChange(page)}
+              />
+            </Pagination></> : !loading &&
+          <Result
+            status="404"
+            title="There are no users registered"
+            subTitle="It's is sad to know that, know one is using this app"
+            style={{ margin: '60px' }}
+          />
           }
+          <Modal
+            open={open}
+            onOk={handleOk}
+            onCancel={handleCancel}
+            footer={[
+              <Button key="back" onClick={handleCancel}>
+                Return
+              </Button>,
+              <Button key="submit" type="primary" loading={loadingModal} onClick={handleOk} danger>
+                Confirm
+              </Button>
+            ]}
+          >
+            <OuterDiv>
+              <h3>Change User Role</h3>
+              <div>
+                <div>
+                  <p>First Name: {selectedUser?.name}</p>
+                  <p>Last Name: {selectedUser?.lastname}</p>
+                </div>
+                <div>
+                  <span>Present Role:</span><span>{selectedUser?.role}</span>
+                </div>
+                <br />
+                <div>
+                  <span>Change to:</span>
+                  <select onChange={(e) => handleChangeSelect(e)}>
+                    <option hidden selected='true' disabled='disabled'>select</option>
+                    <option value='admin'>admin</option>
+                    <option value='teacher'>teacher</option>
+                    <option value='manager'>manager</option>
+                    <option value='provc'>provc</option>
+                  </select>
+                  { }
+                </div>
+              </div>
+            </OuterDiv>
+          </Modal>
         </Spin>
       </User>
     </Container>

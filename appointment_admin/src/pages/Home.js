@@ -15,10 +15,11 @@ const OuterContainer = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
-    /* background: -webkit-radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, hsla(210, 100%,13%,1) 85%); */
+    /* background: -webkit-radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, hsla(210, 100%,13%,1) 85%);
     background: hsla(355, 77%, 52%, 1);
     background: radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, #002142 85%);
-    background: -webkit-radial-gradient(circle, hsla(355, 77%,52%,1)0%);
+    background: -webkit-radial-gradient(circle, hsla(355, 77%,52%,1)0%); */
+    background-color: #f1f1f1;
 `
 const Container = styled.div`
     display: flex;

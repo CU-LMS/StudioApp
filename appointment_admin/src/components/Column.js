@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import Box from "./Box"
+import { useEffect, useState } from "react"
 
 const ColumnContainer = styled.div`
     /* width: 10vw;
@@ -12,11 +13,22 @@ const ColumnContainer = styled.div`
     flex-direction: column;
     justify-content: space-evenly;
 `
-const Column = ({item}) => {
+const Column = ({item,unavailableStudios}) => {
+  const [studioUnavailable,setStudioUnavailable] = useState(false)
+  
+  useEffect(()=>{
+    if(unavailableStudios.length>0){
+      setStudioUnavailable(!unavailableStudios.filter((i)=>{
+        if(i._id === item.number){
+          return item
+        }
+      })[0].activeStatus)
+    }
+  },[unavailableStudios])
   return (
     <ColumnContainer>
         {item.slots.map(slot=>{
-           return  <Box slot={slot} />
+           return  <Box slot={slot} studioUnavailable={studioUnavailable}/>
         })}
     </ColumnContainer>
   )

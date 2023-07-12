@@ -11,6 +11,8 @@ import styled from "styled-components";
 import './App.css'
 import PageLayout from './PageLayout'
 import Programs from "./pages/Programs";
+import StudioConfigure from "./pages/StudioConfigure";
+import Manage from "./pages/Manage";
 
 function App() {
   const { user } = useContext(AuthContext)
@@ -23,6 +25,8 @@ function App() {
         <Route path="/users" element={user?.isAdmin ?<Users />: <Login/>} />
         <Route path="/requests" element={user?.isAdmin ?<Requests />: <Login/>} />
         <Route path="/programs" element={user?.isAdmin ?<Programs />: <Login/>} />
+        <Route path="/configure" element={user?.isAdmin ?<StudioConfigure />: <Login/>} />
+        <Route path="/manage" element={user?.role==='manager' ?<Manage />: <Home/>} />
       </Routes>
     </BrowserRouter>
   );

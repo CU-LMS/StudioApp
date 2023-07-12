@@ -8,13 +8,11 @@ const sendEmail = async (req, res, to, subject, templateId, dynamicTemplateData)
         subject,
         templateId,
         dynamicTemplateData
-        // text: 'test mail after booking using Node.js',
-        // html: '<strong>this is test mail from Chandigarh University ignore it please</strong>',
     };
     try {
         await sgMail.send(msg)
     } catch (error) {
-        res.status(500).json({ msg: "there is some error", err: error.message })
+        // res.status(500).json({ msg: "there is some error", err: error.message })
         console.log(error)
     }
 }

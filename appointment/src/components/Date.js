@@ -9,8 +9,10 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
 const Container = styled.div`
     margin: 20px;
+    margin-top: 0;
     padding: 20px;
-    margin-top: 15vh;
+    padding-top: 0;
+    /* box-shadow: 0px 1px 9px -1px rgba(179,173,179,1); */
 `
 const DatesPicker = ({ datePickerOpen }) => {
   const { dispatch, setDateString} = useContext(SlotStatusContext)
@@ -25,7 +27,7 @@ const DatesPicker = ({ datePickerOpen }) => {
   }
   return (
     <Container>
-      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px" }} size="large" disabledDate={disabledDate} />
+      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px",boxShadow: '0px 1px 9px -1px rgba(179,173,179,1)' }} size="large" disabledDate={disabledDate} />
     </Container>
   )
 }

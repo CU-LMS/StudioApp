@@ -5,14 +5,15 @@ import { AuthContext } from '../context/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 
 const Container = styled.div`
-padding: 20px;
+padding: 20px 50px 20px 50px;
 display: flex;
 justify-content: space-between;
 align-items: center;
-margin: 0px 30px 0px 30px;
+margin: 0;
+background-color: #1e283c;
 `
 const Left = styled.div`
-
+  color: #fff;
 `
 const Greeting = styled.h1`
 color: '#ffffffff'

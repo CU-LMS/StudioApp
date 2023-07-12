@@ -15,8 +15,9 @@ import { useEffect } from 'react'
 import axios from 'axios'
 import Sucess from '../utils/Sucess'
 import ErrorMessage from '../utils/ErrorMessage'
-const SEMESTERS = [1,2,3,4,5,6,7,8]
-const PROGRAMNAMES = ["BAJMC","BBA", "BCA", "M.Com", "MAJMC", "MBA", "MCA"]
+import TakeAction from '../utils/TakeAction'
+const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8]
+const PROGRAMNAMES = ["BAJMC", "BBA", "BCA", "M.Com", "MAJMC", "MBA", "MCA"]
 const OuterContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -25,15 +26,16 @@ const OuterContainer = styled.div`
 `
 const Container = styled.div`
     width: auto;
-    height: 70vh;
+    max-height: 55vh;
+    overflow-y: auto;
     margin: 10px;
     padding: 10px;
     /* background-color: green; */
-    background-color: lightgrey;
+    background-color: #fff;
     display: flex;
     flex-direction: column;
     border-radius: 8px;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     /* border-color: grey; */
     /* border-style: solid; */
@@ -41,12 +43,9 @@ const Container = styled.div`
     box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
 `
 const Studio = styled.div`
-    height: 6vh;
-    margin: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-bottom: solid;
     border-color: rgba(179,173,179,1);
     border-width: 1px;
     align-items: center;
@@ -58,11 +57,13 @@ const Name = styled.p`
     font-weight: bold;
     font-size: 18px;
     align-self: center;
+    margin-top: 4px;
+    margin-bottom: 0;
 `
 const Button = styled.button`
 /* width: 40%; */
 height: 40px;
- background-color: ${props => props.disable ? "#6C757D" : "#d90429"};
+ background-color: ${props => props.disableJi ? "#6C757D" : "#d90429"};
   color: white;
   font-size: 16px;
   font-weight: bold;
@@ -71,15 +72,14 @@ height: 40px;
   outline: 0;
   text-transform: uppercase;
   margin: 6px;
-  cursor: pointer;
+  cursor: ${props => props.disableJi == true ? "not-allowed": "pointer"};
   transition: ease background-color 250ms;
   border: none;
   &:hover {
-    background-color: #ef233c;
-    transform: scale(0.96)
+    transform: scale(0.98)
   }
   &:disabled {
-    cursor: default;
+    /* cursor: default; */
     opacity: 0.7;
   }
 `
@@ -98,8 +98,8 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     const { activeIds, dateString, unCheckSlotActive, dispatch, loading, timingNo } = useContext(SlotStatusContext)
     const [program, setProgram] = useState("")
     const [programs, setPrograms] = useState([])
-    const [semester,setSemester]  = useState(SEMESTERS[0])
-    const [programName,setProgramName] = useState(PROGRAMNAMES[0])
+    const [semester, setSemester] = useState(SEMESTERS[0])
+    const [programName, setProgramName] = useState(PROGRAMNAMES[0])
     const [state, dispatchA] = useReducer(bookingReducer, INITIAL_STATE_SLOT_REDUCER)
     const { user } = useContext(AuthContext)
     const [messageApi, contextHolder] = message.useMessage();
@@ -109,13 +109,14 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
         'token': `Bearer ${user?.accestoken}`
     }
     const handleBook = () => {
-        if (activeIds !== []) {
+        if (activeIds.length>0) {
             setDatePickerOpen(false)
             setIsModalOpen(true)
         } else {
             warning()
         }
     }
+    console.log(activeIds)
     const handleCancel = () => {
         setDatePickerOpen(true)
         setIsModalOpen(false)
@@ -161,7 +162,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     };
     const success = () => {
         messageApi.open({
-            content: <Sucess/>,
+            content: <Sucess />,
             style: {
                 marginTop: "5vh",
             },
@@ -171,7 +172,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
 
     const error = () => {
         messageApi.open({
-            content: <ErrorMessage/>,
+            content: <ErrorMessage />,
             style: {
                 marginTop: "5vh"
             },
@@ -209,15 +210,20 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     }
     useEffect(() => {
         getProgramList()
-    }, [semester,programName])
+    }, [semester, programName])
+
+    const [unavailableStudios, setUnavailableStuios] = useState([])
+    const getStudioStatus = async () => {
+        const studioStatus = await userRequest.get("/slot/active")
+        return studioStatus.data
+    }
+    useEffect(() => {
+        getStudioStatus().then(studioStatus => setUnavailableStuios(studioStatus))
+    }, [])
 
     return (<OuterContainer>
         {contextHolder}
-        {showSlots == false ? <Result
-            status="403"
-            title="please select a slot and date"
-            style={{ marginTop: "20vh" }}
-        /> : <>
+        {showSlots == false ? <TakeAction /> : <>
             <Container>
                 <Spin indicator={antIcon} spinning={state.posting || loading} size='large'>
                     <Studio>
@@ -225,31 +231,31 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
                     </Studio>
                     <Slots>
                         {newData.map((item) => {
-                            return item.type === slotType && <Column item={item} />
+                            return item.type === slotType && <Column item={item} unavailableStudios={unavailableStudios}/>
                         })}
                     </Slots>
                 </Spin>
             </Container>
-            <Button onClick={handleBook} disable={state.posting || loading}>Book Now</Button>
+            <Button onClick={handleBook} disableJi={state.posting || loading || (activeIds.length==0)}>Book Now</Button>
             <Modal title={`You are booking ${slotType} slot`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
                 <Title>Select the program</Title>
                 <Form>
                     {/* <Input placeholder="eg: MBA" onChange={(e) => setProgram(e.target.value)} /> */}
-                    <Select name="semester" value={semester}  onChange={(e)=>setSemester(SEMESTERS[e.target.options.selectedIndex])}>
+                    <Select name="semester" value={semester} onChange={(e) => setSemester(SEMESTERS[e.target.options.selectedIndex])}>
                         {
-                            SEMESTERS && SEMESTERS.map((item,index)=>(
+                            SEMESTERS && SEMESTERS.map((item, index) => (
                                 <Option value={item} key={index}>{item}</Option>
                             ))
                         }
                     </Select>
-                    <Select name="programName" value={programName} onChange={(e)=>setProgramName(PROGRAMNAMES[e.target.options.selectedIndex])}>
+                    <Select name="programName" value={programName} onChange={(e) => setProgramName(PROGRAMNAMES[e.target.options.selectedIndex])}>
                         {
-                            PROGRAMNAMES && PROGRAMNAMES.map((item,index)=>(
+                            PROGRAMNAMES && PROGRAMNAMES.map((item, index) => (
                                 <Option value={item} key={index}>{item}</Option>
                             ))
                         }
                     </Select>
-                    <Select name="programs" value={program} defaultValue={programs[0]?.courseName} onChange={(e)=>setProgram(programs[e.target.options.selectedIndex]?.courseName)}>
+                    <Select name="programs" value={program} defaultValue={programs[0]?.courseName} onChange={(e) => setProgram(programs[e.target.options.selectedIndex]?.courseName)}>
                         {
                             programs && programs.map((item) => (
                                 <Option value={item?.courseName} key={item._id} >{item?.courseName}</Option>

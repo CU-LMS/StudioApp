@@ -20,7 +20,6 @@ const OuterContainer = styled.div`
 `
 const Container = styled.div`
     width: 40vw;
-    height: 70vh;
     margin: 20px;
     padding: 20px;
     /* background-color: green; */
@@ -53,11 +52,11 @@ const Name = styled.p`
     flex-direction: column;
     /* justify-content: center; */
     align-items: center;
-    color: #ffffffff;
+    color: #333;
 `
 const Span = styled.span`
     font-size: 10px;
-    color: #ffffffff;
+    color: #333;
     font-weight: 400;
 `
 const Button = styled.button`
@@ -274,20 +273,28 @@ const Slot = ({ setDatePickerOpen }) => {
             setBulkOn(false)
         }
     }
-    console.log(bulkIdsActive)
+    
+    const [unavailableStudios, setUnavailableStuios] = useState([])
+    const getStudioStatus = async () => {
+        const studioStatus = await userRequest.get("/slot/active")
+        return studioStatus.data
+    }
+    useEffect(() => {
+        getStudioStatus().then(studioStatus => setUnavailableStuios(studioStatus))
+    }, [])
     return (<OuterContainer>
         {contextHolder}
         <Container>
             <Spin indicator={antIcon} spinning={state.posting || loading} size='large'>
                 <Studio>
-                    <Name>Studio 1<Span>theory</Span><Input type='checkbox' id='studio1' disabled={bookedSlots.some(r => data[0].ids.includes(r))} checked={checkedState[0]} onChange={() => handleOnChangeSelect(0)} /></Name>
-                    <Name>Studio 2<Span>theory</Span><Input type='checkbox' id='studio2' disabled={bookedSlots.some(r => data[1].ids.includes(r))} checked={checkedState[1]} onChange={() => handleOnChangeSelect(1)} /></Name>
-                    <Name>Studio 3<Span>theory</Span><Input type='checkbox' id='studio3' disabled={bookedSlots.some(r => data[2].ids.includes(r))} checked={checkedState[2]} onChange={() => handleOnChangeSelect(2)} /></Name>
-                    <Name>Studio 4<Span>numerical</Span><Input type='checkbox' id='studio4' disabled={bookedSlots.some(r => data[3].ids.includes(r))} checked={checkedState[3]} onChange={() => handleOnChangeSelect(3)} /></Name>
+                    <Name>Studio 1<Span>theory</Span><Input type='checkbox' id='studio1' disabled={bookedSlots.some(r => data[0].ids.includes(r)) || !unavailableStudios.filter((i)=>{if(i._id === 1)return i})[0]?.activeStatus} checked={checkedState[0]} onChange={() => handleOnChangeSelect(0)} /></Name>
+                    <Name>Studio 2<Span>theory</Span><Input type='checkbox' id='studio2' disabled={bookedSlots.some(r => data[1].ids.includes(r)) || !unavailableStudios.filter((i)=>{if(i._id === 2)return i})[0]?.activeStatus} checked={checkedState[1]} onChange={() => handleOnChangeSelect(1)} /></Name>
+                    <Name>Studio 3<Span>theory</Span><Input type='checkbox' id='studio3' disabled={bookedSlots.some(r => data[2].ids.includes(r)) || !unavailableStudios.filter((i)=>{if(i._id === 3)return i})[0]?.activeStatus} checked={checkedState[2]} onChange={() => handleOnChangeSelect(2)} /></Name>
+                    <Name>Studio 4<Span>numerical</Span><Input type='checkbox' id='studio4' disabled={bookedSlots.some(r => data[3].ids.includes(r)) || !unavailableStudios.filter((i)=>{if(i._id === 4)return i})[0]?.activeStatus} checked={checkedState[3]} onChange={() => handleOnChangeSelect(3)} /></Name>
                 </Studio>
                 <Slots>
                     {data.map((item) => {
-                        return <Column item={item} />
+                        return <Column item={item} unavailableStudios={unavailableStudios} />
                     })}
                 </Slots>
             </Spin>

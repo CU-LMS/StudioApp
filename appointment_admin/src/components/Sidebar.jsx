@@ -1,6 +1,8 @@
+import { useContext } from "react"
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import styled from "styled-components"
+import { AuthContext } from "../context/AuthContext"
 
 const Container = styled.div`
 width: 180px;
@@ -8,7 +10,7 @@ height: 100vh;
 padding: 20px;
 background-color: #ffffffff;
  /* background: radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, #002142 85%); */
-border-right: 1px;
+border-right: 1px solid #333;
 /* border-width: 1px; */
 box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
 `
@@ -30,13 +32,14 @@ padding: 5px;
 margin: 8px;
 font-size: 20px;
 font-weight: 600;
-border-bottom: ${props=>props.selected ==true? '4px solid red': 'none'};
+border-bottom: ${props => props.selected == true ? '4px solid red' : 'none'};
 border-radius: 2px;
 transition: border-bottom 1s ease-in-out;
+color: ${props=>props.special === true? '#d90429': 'inherit'}
 `
 const Sidebar = () => {
     const location = useLocation()
-   
+    const { user } = useContext(AuthContext)
     return (
         <Container>
             <Logo>
@@ -65,6 +68,18 @@ const Sidebar = () => {
                         Programs
                     </Link>
                 </ListItem>
+                <ListItem selected={location.pathname == '/configure'} value='/configure'>
+                    <Link to="/configure" style={{ textDecoration: "none", color: "inherit" }}>
+                        Configure
+                    </Link>
+                </ListItem>
+                {
+                    user?.role === 'manager' ? <ListItem selected={location.pathname == '/manage'} value='/configure' special={true}>
+                        <Link to="/manage" style={{ textDecoration: "none", color: "inherit" }}>
+                            Manage
+                        </Link>
+                    </ListItem> : null
+                }
             </Menu>
 
         </Container>

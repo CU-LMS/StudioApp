@@ -13,7 +13,9 @@ const SlotSchema = mongoose.Schema({
         bookedAt: {type: Date, default: Date.now},
         completed: {type: Boolean, default: false},
         approvedBy: {type: String},
-        defaulted: {type: Boolean, default: false}
+        defaulted: {type: Boolean, default: false},
+        reasonForDefault: {type: String},
+        reasonForCompleted: {type: String}
     }],
     queueData:{
         slotBookingsData: [
@@ -26,10 +28,32 @@ const SlotSchema = mongoose.Schema({
                 completed: {type: Boolean, default: false},
                 approvedBy: {type: String},
                 defaulted: {type: Boolean, default: false},
-                waitingNo: {type: Number}
+                waitingNo: {type: Number},
+                reasonForDefault: {type:String},
+                reasonForCompleted: {type: String}
             }
         ],
-    }
+    },
+    deletedData: {
+        slotBookingsData: [{
+            user: {type: mongoose.Types.ObjectId, ref: "User"},
+            userEmail: {type: String, required: true},
+            date: {type:Date},
+            program: {type: String},
+            bookedAt: {type: Date, default: Date.now},
+            completed: {type: Boolean, default: false},
+            approvedBy: {type: String},
+            defaulted: {type: Boolean, default: false},
+            deletedAt: {type: Date, default: Date.now},
+            reasonForDefault: {type: String},
+            reasonForCompleted: {type: String}
+        }]
+    },
+    active: {type: Boolean, default: true},
+    startTimeString: {type: String},
+    endTimeString: {type: String},
+    managerEmail: {type: String},
+    managerId: {type: mongoose.Types.ObjectId, ref: "User"} 
 }, { timestamps: true })
 
 module.exports = mongoose.model("Slot", SlotSchema);

@@ -112,7 +112,6 @@ router.post("/google/register", async (req, res) => {
 router.post("/google/login", async (req, res) => {
     // console.log(req.body)
     const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
-    console.log(tokens);
 
     const ticket = await oAuth2Client.verifyIdToken({
         idToken: tokens.id_token,

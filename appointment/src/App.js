@@ -14,6 +14,7 @@ function App() {
         <Route path="/bookings" element={user?<MyBookings/> : <Navigate to="/login"/>}/>
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login"/>}/>
       </Routes>
     </BrowserRouter>
   );

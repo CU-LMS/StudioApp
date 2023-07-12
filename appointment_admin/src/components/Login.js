@@ -4,7 +4,7 @@ import styled from "styled-components"
 import { AuthContext } from "../context/AuthContext"
 
 const Container = styled.button`
- background-color:${props => props.disabled ? "#6C757D" : " #d90429"};
+ background-color:${props => props.disabled ? "#6C757D" : "#d90429"};
   color: white;
   font-size: 12px;
   font-weight: bold;

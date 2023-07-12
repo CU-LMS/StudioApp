@@ -55,7 +55,10 @@ const MyBookings = () => {
         }
         if (bookingsType == 'waiting') {
             url = "/booking/reserve/history"
-        } else {
+        } else if(bookingsType == 'cancelled'){
+            url = "/booking/cancelled/history"
+        }
+        else {
             url = "/booking/history"
         }
 
@@ -76,15 +79,16 @@ const MyBookings = () => {
                 studioNo: booking.studioNo,
                 timingNo: booking.timingNo,
                 waitingNo: booking.bookings.waitingNo,
-                date: booking.bookings.date,
+                date: booking.bookings.date.substring(0,10),
                 slotNo: booking.slotNo
             }
         } else {
             url = "/booking/delete"
             payload = {
                 studioNo: booking.studioNo,
-                date: booking.slotBookingsData.date,
-                timingNo: booking.timingNo
+                date: booking.slotBookingsData.date.substring(0,10),
+                timingNo: booking.timingNo,
+                slotNo: booking.slotNo
             }
         }
         try {
@@ -151,6 +155,27 @@ const MyBookings = () => {
     const onChangeGroup = (e) => {
         setBookingsType(e.target.value);
     };
+    function localDateStringToDDMMYYYY(localDateString) {
+        // Convert the local date string to a Date object.
+        const localDate = new Date(localDateString)
+      
+        // Get the day, month, and year from the Date object.
+        let day = localDate.getDate();
+        let month = localDate.getMonth() + 1;
+        let year = localDate.getFullYear();
+      
+        // Add leading zeros to the day and month digits if they are less than 10.
+        if (day < 10) {
+          day = "0" + day;
+        }
+        if (month < 10) {
+          month = "0" + month;
+        }
+      
+        // Return the date in DD/MM/YYYY format.
+        return day + "/" + month + "/" + year;
+      }
+      console.log(bookings)
     return (
         <>
             <Navbar />
@@ -160,8 +185,9 @@ const MyBookings = () => {
                         <Space direction='horizontal'>
                             <Radio value='today'>Today</Radio>
                             <Radio value='upcoming'>Upcoming</Radio>
-                            <Radio value='past'>Previous</Radio>
+                            <Radio value='past'>Past</Radio>
                             <Radio value='waiting'>Waiting</Radio>
+                            <Radio value='cancelled'>Cancelled</Radio>
                         </Space>
                     </Radio.Group>
                 </RadioContainer>
@@ -181,10 +207,11 @@ const MyBookings = () => {
                                         {bookingsType == 'waiting' ? <th>Waiting Number</th> : null}
                                         <th>Program</th>
                                         <th>Booked At</th>
-                                        <th>Actions</th>
+                                        {bookingsType == 'waiting' || bookingsType == 'upcoming' ?<th>Actions</th>: null}
+                                        {bookingsType == 'cancelled' ?<th>Cancelled At</th>: null}
                                     </tr>
                                     {
-                                        bookings.length > 0 && bookingsType == 'waiting' ?
+                                        bookings.length > 0 && (bookingsType == 'waiting' || bookingsType == 'cancelled') ?
                                             bookings?.map(booking => {
                                                 return (
                                                     <tr key={booking?.bookings?._id}>
@@ -192,11 +219,12 @@ const MyBookings = () => {
                                                         <td>{booking?.studioNo}</td>
                                                         <td>{Math.trunc(booking?.slotNo % 10)}</td>
                                                         <td>{booking?.type}</td>
-                                                        <td>{new Date(booking.bookings?.date).toLocaleDateString()}</td>
-                                                        <td>{booking.bookings?.waitingNo}</td>
+                                                        <td>{localDateStringToDDMMYYYY(booking.bookings?.date)}</td>
+                                                        {bookingsType == 'waiting' ? <td>{booking.bookings?.waitingNo}</td>: null}
                                                         <td>{booking.bookings?.program}</td>
-                                                        <td>{`${new Date(booking?.bookings?.bookedAt).toLocaleDateString()} ${new Date(booking?.bookings?.bookedAt).toLocaleTimeString()}`}</td>
-                                                        <td>{bookingsType == "waiting" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>
+                                                        <td>{`${localDateStringToDDMMYYYY(booking?.bookings?.bookedAt)} ${new Date(booking?.bookings?.bookedAt).toLocaleTimeString()}`}</td>
+                                                        {bookingsType == 'waiting'? <td>{bookingsType == "waiting" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>: null}
+                                                        {bookingsType == 'cancelled'? <td>{`${localDateStringToDDMMYYYY(booking.bookings?.deletedAt)} ${new Date(booking?.bookings?.deletedAt).toLocaleTimeString()}`}</td>: null}
                                                     </tr>
                                                 )
                                             })
@@ -208,10 +236,10 @@ const MyBookings = () => {
                                                         <td>{booking?.studioNo}</td>
                                                         <td>{Math.trunc(booking?.slotNo % 10)}</td>
                                                         <td>{booking?.type}</td>
-                                                        <td>{new Date(booking?.slotBookingsData?.date).toLocaleDateString()}</td>
+                                                        <td>{localDateStringToDDMMYYYY(booking?.slotBookingsData?.date)}</td>
                                                         <td>{booking?.slotBookingsData?.program}</td>
-                                                        <td>{`${new Date(booking?.slotBookingsData?.bookedAt).toLocaleDateString()} ${new Date(booking?.slotBookingsData?.bookedAt).toLocaleTimeString()}`}</td>
-                                                        <td>{bookingsType == "upcoming" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>
+                                                        <td>{`${localDateStringToDDMMYYYY(booking?.slotBookingsData?.bookedAt)} ${new Date(booking?.slotBookingsData?.bookedAt).toLocaleTimeString()}`}</td>
+                                                        {bookingsType == 'upcoming'? <td>{bookingsType == "upcoming" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>:null}
                                                     </tr>
                                                 )
                                             })
@@ -221,7 +249,7 @@ const MyBookings = () => {
                             </table> : !loading &&
                             <Result
                                 status="404"
-                                title={`There are no ${bookingsType} bookings`}
+                                title={`There are no bookings`}
                                 subTitle="You are free, feel free to read some News"
                                 style={{ margin: '60px' }}
                             />
