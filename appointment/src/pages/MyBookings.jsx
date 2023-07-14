@@ -194,7 +194,7 @@ const MyBookings = () => {
                 <InnerContainer>
                     <Spin indicator={antIcon} spinning={loading} size='large'>
                         {bookings.length > 0 ?
-                            <table className='table text-center table-striped table-hover table-bordered'>
+                            <table className='table text-center table-hover table-bordered'>
                                 <tbody>
                                     <tr>
                                         <th>

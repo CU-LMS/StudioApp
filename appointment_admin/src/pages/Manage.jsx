@@ -8,6 +8,8 @@ import { getTimingStringFromTimingNoOfSlot, localDateStringToDDMMYYYY, todayDate
 import { userRequest } from '../requestMethods'
 import ResponsivePagination from 'react-responsive-pagination';
 import { BsFlagFill } from 'react-icons/bs'
+import axios from 'axios'
+var fileDownload = require('js-file-download');
 const { Search } = Input
 
 const Container = styled.div`
@@ -50,6 +52,15 @@ const Button = styled.button`
   margin-right: 5px;
   padding: 2px;
 `
+const ButtonJi = styled.button`
+  border: none;
+  border-radius: 4px;
+  margin-left: 5px;
+  margin-right: 5px;
+  padding: 8px;
+  color: white;
+  background-color: blue;
+`
 const Pagination = styled.div`
     margin-top: 10px;
 `
@@ -66,13 +77,13 @@ const Manage = () => {
     const [bookings, setBookings] = useState([])
     const [totalPages, setTotalPages] = useState(1)
     const [currentPage, setCurrentPage] = useState(1)
-    const [selectedField,setSelectedField] = useState('email')
-    const [searchText,setSearchText] = useState('')
+    const [selectedField, setSelectedField] = useState('email')
+    const [searchText, setSearchText] = useState('')
 
     const onChangeRadio = (e) => {
         setStudioNo(e.target.value)
         setCurrentPage(1)
-        getBookings(1, e.target.value,selectedField,searchText).then(res => {
+        getBookings(1, e.target.value, selectedField, searchText).then(res => {
             setBookings(res.data.bookings)
             setTotalPages(res.data.totalPages)
         })
@@ -82,7 +93,7 @@ const Manage = () => {
 
     }
 
-    async function getBookings(page, studioNumber,selectedField,searchText) {
+    async function getBookings(page, studioNumber, selectedField, searchText) {
         setLoading(true)
         try {
             const res = await userRequest.post(`/booking/find?page=${page}&limit=10&manage=true&studio=${studioNumber}&${selectedField}=${searchText}`, {
@@ -99,7 +110,7 @@ const Manage = () => {
 
     const handlePageChange = (page) => {
         setCurrentPage(page)
-        getBookings(page, studioNo,selectedField,searchText).then(res => {
+        getBookings(page, studioNo, selectedField, searchText).then(res => {
             setBookings(res.data.bookings)
             setTotalPages(res.data.totalPages)
         })
@@ -186,7 +197,7 @@ const Manage = () => {
         setReasonForCompleted('')
         setSelectedBooking(null)
     };
-    const handleChangeSelect = (value)=>{
+    const handleChangeSelect = (value) => {
         console.log(value)
         setSelectedField(value)
     }
@@ -223,10 +234,19 @@ const Manage = () => {
         setSearchText(value)
         setStudioNo('all')
         setCurrentPage(1)
-        getBookings(1, 'all',selectedField,value).then(res => {
+        getBookings(1, 'all', selectedField, value).then(res => {
             setBookings(res.data.bookings)
             setTotalPages(res.data.totalPages)
         })
+    }
+    const handleSlotDataCSVDownload = async () => {
+        try {
+            const res = await userRequest.post(`/booking/find?manage=true&studio=all&typeOfRequest=downloadCsv`, {dateString: todayDateStringToSendToBackend()},{ responseType: 'blob' })
+            fileDownload(res.data, "StudioSlotReport.xlsx")
+        } catch (error) {
+            console.log(error.message)
+        }
+
     }
     return (
         <Container>
@@ -247,6 +267,7 @@ const Manage = () => {
                             </Radio.Group>
                         </RadioContainer>
                         <Search size='large' addonBefore={selectBefore} placeholder="search text" enterButton="Search" style={{ width: '350px' }} onSearch={onSearch} allowClear />
+                        <ButtonJi onClick={handleSlotDataCSVDownload}>Download CSV</ButtonJi>
                     </UpperContainer>
                     <TableContainer>
                         <Spin indicator={antIcon} spinning={loading} size='large'>

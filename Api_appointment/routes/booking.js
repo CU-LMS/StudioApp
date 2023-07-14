@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const { oAuth2Client } = require('../middleware/verifyGoogle');
 const { google } = require('googleapis');
 const CalendarEvent = require('../models/CalendarEvent');
+const excelJs = require('exceljs')
 const bookingDoneTemplateId = process.env.BOOKINGDONEEMAILTEMPLATE
 const deleteDoneTemplateId = process.env.DELETEDONEEMAILTEMPLATE
 const waitingDoneTemplateId = process.env.WAITINGDONEEMAILTEMPLATE
@@ -842,8 +843,8 @@ router.post("/find", async (req, res) => {
   const manage = req.query.manage
   let dateQuery = { $gte: new Date(req.body.dateString) }
   if (manage == 'true') {
-      dateQuery = { $lte: new Date(req.body.dateString) }
-      sortQuery = { "slotBookingsData.date": -1 }
+    dateQuery = { $lte: new Date(req.body.dateString) }
+    sortQuery = { "slotBookingsData.date": -1 }
   }
 
   const studio = req.query.studio
@@ -859,17 +860,106 @@ router.post("/find", async (req, res) => {
     }
   }
 
-  const {program,email} = req.query
+  const { program, email } = req.query
   let searchQuery = {}
-  if(program){
-    searchQuery = {'slotBookingsData.program': {$regex: program, $options: 'i'}}
+  if (program) {
+    searchQuery = { 'slotBookingsData.program': { $regex: program, $options: 'i' } }
   }
-  if(email){
-    searchQuery = {'slotBookingsData.userEmail': {$regex: email, $options: 'i'}}
+  if (email) {
+    searchQuery = { 'slotBookingsData.userEmail': { $regex: email, $options: 'i' } }
   }
-  
+
 
   try {
+    if (req.query.typeOfRequest === 'downloadCsv') {
+
+      let bookingsJi = await Slot.aggregate([
+        {
+          '$unwind': {
+            'path': '$slotBookingsData'
+          }
+        }, {
+          '$match': {
+            'slotBookingsData.date': dateQuery,
+            ...studioQuery,
+            ...searchQuery
+          }
+        },
+        {
+          $project: {
+            slotBookingsData: 1, slotNo: 1, studioNo: 1, type: 1, timingNo: 1, _id: 0, user_docs: 1
+          }
+        }, {
+          '$sort': sortQuery
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'slotBookingsData.userEmail',
+            foreignField: 'email',
+            as: 'user_doc',
+            pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 } }]
+          }
+        },
+        {
+          $unwind: {
+            path: '$user_doc'
+          }
+        }
+      ])
+
+      const workbook = new excelJs.Workbook()
+      const worksheet = workbook.addWorksheet("Studio Slot Data")
+
+      worksheet.columns = [
+        { header: "S.no", key: 's_no', width: 10 },
+        { header: "Studio No", key: 'studioNo', width: 15 },
+        { header: "Slot No", key: 'slotNo', width: 15 },
+        { header: "Timing", key: "timing", width: 25 },
+        { header: 'Date', key: "date", width: 30 },
+        { header: 'Program', key: "program", width: 50 },
+        { header: 'Full Name', key: "fullName", width: 40 },
+        { header: 'Role', key: 'role', width: 25 },
+        { header: 'Email', key: 'email', width: 50 },
+        { header: 'Defaulted', key: 'defaulted', width: 20 },
+        { header: 'Reason for defaulted', key: 'reasonForDefault', width: 70 },
+        { header: 'Completed', key: 'completed', width: 20 },
+        { header: 'Reason for completed', key: 'reasonForCompleted', width: 70 }
+      ]
+
+      let counter = 1;
+      bookingsJi.forEach((item) => {
+        let rowItem = {
+          s_no: counter,
+          studioNo: item.studioNo,
+          slotNo: item.slotNo,
+          timing: getTimingNoString(item?.timingNo),
+          date: localDateStringToDDMMYYYY(item.slotBookingsData.date),
+          program: item.slotBookingsData?.program,
+          fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
+          role: item?.user_doc?.role,
+          email: item?.user_doc?.email,
+          defaulted: item.slotBookingsData?.defaulted,
+          reasonForDefault: item.slotBookingsData?.reasonForDefault,
+          completed: item.slotBookingsData?.completed,
+          reasonForCompleted: item.slotBookingsData?.reasonForCompleted
+        }
+        worksheet.addRow(rowItem)
+        counter++
+      })
+
+      worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true }
+      })
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader("Content-Disposition", "attachment; filename=" + "StudioSlotReport.xlsx");
+      return workbook.xlsx.write(res)
+        .then(function (data) {
+          res.end();
+        });
+    }
+
     let bookings = await Slot.aggregate([
       {
         '$unwind': {
@@ -925,10 +1015,100 @@ router.post("/find", async (req, res) => {
         }
       }
     ])
-
     res.json({ totalPages: Math.ceil(bookings[0].count[0].count / limit), count: bookings[0].results.length, bookings: bookings[0].results })
   } catch (error) {
     res.json(error.message)
+  }
+})
+
+router.get("/find", async (req, res) => {
+  let dateQuery = { $lte: new Date(req.query.dateString) }
+  let sortQuery = { "slotBookingsData.date": -1 }
+  if (req.query.typeOfRequest === 'downloadCsv') {
+
+    let bookingsJi = await Slot.aggregate([
+      {
+        '$unwind': {
+          'path': '$slotBookingsData'
+        }
+      }, {
+        '$match': {
+          'slotBookingsData.date': dateQuery,
+        }
+      },
+      {
+        $project: {
+          slotBookingsData: 1, slotNo: 1, studioNo: 1, type: 1, timingNo: 1, _id: 0, user_docs: 1
+        }
+      }, {
+        '$sort': sortQuery
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'slotBookingsData.userEmail',
+          foreignField: 'email',
+          as: 'user_doc',
+          pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 } }]
+        }
+      },
+      {
+        $unwind: {
+          path: '$user_doc'
+        }
+      }
+    ])
+
+    const workbook = new excelJs.Workbook()
+    const worksheet = workbook.addWorksheet("Studio Slot Data")
+
+    worksheet.columns = [
+      { header: "S.no", key: 's_no', width: 10 },
+      { header: "Studio No", key: 'studioNo', width: 15 },
+      { header: "Slot No", key: 'slotNo', width: 15 },
+      { header: "Timing", key: "timing", width: 25 },
+      { header: 'Date', key: "date", width: 30 },
+      { header: 'Program', key: "program", width: 50 },
+      { header: 'Full Name', key: "fullName", width: 40 },
+      { header: 'Role', key: 'role', width: 25 },
+      { header: 'Email', key: 'email', width: 50 },
+      { header: 'Defaulted', key: 'defaulted', width: 20 },
+      { header: 'Reason for defaulted', key: 'reasonForDefault', width: 70 },
+      { header: 'Completed', key: 'completed', width: 20 },
+      { header: 'Reason for completed', key: 'reasonForCompleted', width: 70 }
+    ]
+
+    let counter = 1;
+    bookingsJi.forEach((item) => {
+      let rowItem = {
+        s_no: counter,
+        studioNo: item.studioNo,
+        slotNo: item.slotNo,
+        timing: getTimingNoString(item?.timingNo),
+        date: localDateStringToDDMMYYYY(item.slotBookingsData.date),
+        program: item.slotBookingsData?.program,
+        fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
+        role: item?.user_doc?.role,
+        email: item?.user_doc?.email,
+        defaulted: item.slotBookingsData?.defaulted,
+        reasonForDefault: item.slotBookingsData?.reasonForDefault,
+        completed: item.slotBookingsData?.completed,
+        reasonForCompleted: item.slotBookingsData?.reasonForCompleted
+      }
+      worksheet.addRow(rowItem)
+      counter++
+    })
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+    })
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader("Content-Disposition", "attachment; filename=" + "StudioSlotReport.xlsx");
+    return workbook.xlsx.write(res)
+      .then(function (data) {
+        res.end();
+      });
   }
 })
 

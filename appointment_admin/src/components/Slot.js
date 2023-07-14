@@ -84,13 +84,15 @@ height: 40px;
   }
 `
 const Title = styled.h3`
+    font-size: 18px;
+    margin-bottom: 20px;
+    margin-top: 40px;
 `
 const Form = styled.form`
 `
 const Input = styled.input`
     cursor: ${props=>props.disabled == true? 'not-allowed': "pointer"};
-    width: 14px;
-    height: 14px;      
+    padding: 6px;
 `
 const Slot = ({ setDatePickerOpen }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)

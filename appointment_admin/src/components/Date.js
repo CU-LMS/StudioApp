@@ -19,11 +19,18 @@ const DatesPicker = ({ datePickerOpen }) => {
     slotStatuses(dispatch, dateString)
   };
   const disabledDate = (current)=>{
-    return current>dayjs().add(2,'day') || current<dayjs().add(1,'day')
+   // Check if the date is a Sunday.
+   const day = current.weekday();
+   if (day === 0) {
+     return true;
+   }
+
+   // The date is not disabled.
+   return false;
   }
   return (
     <Container>
-      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px" }} size="large"  />
+      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px" }} size="large" disabledDate={disabledDate} />
     </Container>
   )
 }
