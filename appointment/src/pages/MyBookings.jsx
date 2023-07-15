@@ -1,7 +1,7 @@
 import React from 'react'
 import Navbar from '../components/Navbar'
 import styled from 'styled-components'
-import { Radio, Result, Space, Spin, message } from 'antd'
+import { Modal, Radio, Result, Space, Spin, Tooltip, message } from 'antd'
 import { DeleteOutlined, LoadingOutlined } from '@ant-design/icons'
 import { useEffect } from 'react'
 import { useState } from 'react'
@@ -26,12 +26,35 @@ const Button = styled.button`
   margin-right: 5px;
   padding: 2px;
 `
+const Label = styled.label`
+    
+`
+const Input = styled.input`
+    padding: 10px;
+    margin: 10px;
+    border-radius: 4px;
+`
 const MyBookings = () => {
     const [bookings, setBookings] = useState([])
     const [messageApi, contextHolder] = message.useMessage();
     const [loading, setLoading] = useState(true)
     const { user } = useContext(AuthContext)
     const [bookingsType, setBookingsType] = useState("today")
+    const [reasonForCancel, setReasonForCancel] = useState('')
+    const [selectedBooking, setSelectedBooking] = useState(null)
+    const [open, setOpen] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    const showModal = (booking) => {
+        setSelectedBooking(booking)
+        setOpen(true);
+    };
+    const handleOk = () => {
+        setConfirmLoading(true);
+        handleDelete(selectedBooking)
+    };
+    const handleCancel = () => {
+        setOpen(false);
+    };
 
     const getBookings = async (url, payload) => {
         setLoading(true)
@@ -55,7 +78,7 @@ const MyBookings = () => {
         }
         if (bookingsType == 'waiting') {
             url = "/booking/reserve/history"
-        } else if(bookingsType == 'cancelled'){
+        } else if (bookingsType == 'cancelled') {
             url = "/booking/cancelled/history"
         }
         else {
@@ -79,16 +102,17 @@ const MyBookings = () => {
                 studioNo: booking.studioNo,
                 timingNo: booking.timingNo,
                 waitingNo: booking.bookings.waitingNo,
-                date: booking.bookings.date.substring(0,10),
+                date: booking.bookings.date.substring(0, 10),
                 slotNo: booking.slotNo
             }
         } else {
             url = "/booking/delete"
             payload = {
                 studioNo: booking.studioNo,
-                date: booking.slotBookingsData.date.substring(0,10),
+                date: booking.slotBookingsData.date.substring(0, 10),
                 timingNo: booking.timingNo,
-                slotNo: booking.slotNo
+                slotNo: booking.slotNo,
+                reasonForCancel: reasonForCancel
             }
         }
         try {
@@ -98,7 +122,7 @@ const MyBookings = () => {
         } catch (error) {
             return console.log(error)
         }
-        
+
         let yourDate = new Date()
         const offset = yourDate.getTimezoneOffset()
         yourDate = new Date(yourDate.getTime() - (offset * 60 * 1000))
@@ -117,8 +141,9 @@ const MyBookings = () => {
         getBookings(urlGet, payloadGet).then((res) => {
             setBookings(res.data.bookings)
             setLoading(false)
+            setConfirmLoading(false);
+            setOpen(false);
         })
-
         success()
     }
 
@@ -158,24 +183,25 @@ const MyBookings = () => {
     function localDateStringToDDMMYYYY(localDateString) {
         // Convert the local date string to a Date object.
         const localDate = new Date(localDateString)
-      
+
         // Get the day, month, and year from the Date object.
         let day = localDate.getDate();
         let month = localDate.getMonth() + 1;
         let year = localDate.getFullYear();
-      
+
         // Add leading zeros to the day and month digits if they are less than 10.
         if (day < 10) {
-          day = "0" + day;
+            day = "0" + day;
         }
         if (month < 10) {
-          month = "0" + month;
+            month = "0" + month;
         }
-      
+
         // Return the date in DD/MM/YYYY format.
         return day + "/" + month + "/" + year;
-      }
-      console.log(bookings)
+    }
+    console.log(bookings)
+
     return (
         <>
             <Navbar />
@@ -207,8 +233,8 @@ const MyBookings = () => {
                                         {bookingsType == 'waiting' ? <th>Waiting Number</th> : null}
                                         <th>Program</th>
                                         <th>Booked At</th>
-                                        {bookingsType == 'waiting' || bookingsType == 'upcoming' ?<th>Actions</th>: null}
-                                        {bookingsType == 'cancelled' ?<th>Cancelled At</th>: null}
+                                        {bookingsType == 'waiting' || bookingsType == 'upcoming' ? <th>Actions</th> : null}
+                                        {bookingsType == 'cancelled' ? <th>Cancelled At</th> : null}
                                     </tr>
                                     {
                                         bookings.length > 0 && (bookingsType == 'waiting' || bookingsType == 'cancelled') ?
@@ -220,27 +246,29 @@ const MyBookings = () => {
                                                         <td>{Math.trunc(booking?.slotNo % 10)}</td>
                                                         <td>{booking?.type}</td>
                                                         <td>{localDateStringToDDMMYYYY(booking.bookings?.date)}</td>
-                                                        {bookingsType == 'waiting' ? <td>{booking.bookings?.waitingNo}</td>: null}
+                                                        {bookingsType == 'waiting' ? <td>{booking.bookings?.waitingNo}</td> : null}
                                                         <td>{booking.bookings?.program}</td>
                                                         <td>{`${localDateStringToDDMMYYYY(booking?.bookings?.bookedAt)} ${new Date(booking?.bookings?.bookedAt).toLocaleTimeString()}`}</td>
-                                                        {bookingsType == 'waiting'? <td>{bookingsType == "waiting" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>: null}
-                                                        {bookingsType == 'cancelled'? <td>{`${localDateStringToDDMMYYYY(booking.bookings?.deletedAt)} ${new Date(booking?.bookings?.deletedAt).toLocaleTimeString()}`}</td>: null}
+                                                        {bookingsType == 'waiting' ? <td>{bookingsType == "waiting" ? <Button onClick={() => showModal(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td> : null}
+                                                        {bookingsType == 'cancelled' ? <td>{`${localDateStringToDDMMYYYY(booking.bookings?.deletedAt)} ${new Date(booking?.bookings?.deletedAt).toLocaleTimeString()}`}</td> : null}
                                                     </tr>
                                                 )
                                             })
                                             :
                                             bookingsType != 'waiting' && bookings.length > 0 && bookings?.map(booking => {
                                                 return (
-                                                    <tr key={booking?.slotBookingsData?._id} className={booking.slotBookingsData?.defaulted == true ? "table-danger" : booking.slotBookingsData?.completed == true ? "table-success" : null}>
-                                                        <td>{booking?.slotBookingsData?._id}</td>
-                                                        <td>{booking?.studioNo}</td>
-                                                        <td>{Math.trunc(booking?.slotNo % 10)}</td>
-                                                        <td>{booking?.type}</td>
-                                                        <td>{localDateStringToDDMMYYYY(booking?.slotBookingsData?.date)}</td>
-                                                        <td>{booking?.slotBookingsData?.program}</td>
-                                                        <td>{`${localDateStringToDDMMYYYY(booking?.slotBookingsData?.bookedAt)} ${new Date(booking?.slotBookingsData?.bookedAt).toLocaleTimeString()}`}</td>
-                                                        {bookingsType == 'upcoming'? <td>{bookingsType == "upcoming" ? <Button onClick={() => handleDelete(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td>:null}
-                                                    </tr>
+                                                    <Tooltip title={booking?.slotBookingsData?.defaulted === true ? `${booking?.slotBookingsData?.reasonForDefault}` : (booking?.slotBookingsData?.completed === true ? `${booking?.slotBookingsData?.reasonForCompleted}` : null)}>
+                                                        <tr key={booking?.slotBookingsData?._id} className={booking.slotBookingsData?.defaulted == true ? "table-danger" : booking.slotBookingsData?.completed == true ? "table-success" : null}>
+                                                            <td>{booking?.slotBookingsData?._id}</td>
+                                                            <td>{booking?.studioNo}</td>
+                                                            <td>{Math.trunc(booking?.slotNo % 10)}</td>
+                                                            <td>{booking?.type}</td>
+                                                            <td>{localDateStringToDDMMYYYY(booking?.slotBookingsData?.date)}</td>
+                                                            <td>{booking?.slotBookingsData?.program}</td>
+                                                            <td>{`${localDateStringToDDMMYYYY(booking?.slotBookingsData?.bookedAt)} ${new Date(booking?.slotBookingsData?.bookedAt).toLocaleTimeString()}`}</td>
+                                                            {bookingsType == 'upcoming' ? <td>{bookingsType == "upcoming" ? <Button onClick={() => showModal(booking)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></Button> : null}</td> : null}
+                                                        </tr>
+                                                    </Tooltip>
                                                 )
                                             })
                                     }
@@ -255,6 +283,16 @@ const MyBookings = () => {
                             />
                         }
                     </Spin>
+                    <Modal
+                        title="Reason for cancellation"
+                        open={open}
+                        onOk={handleOk}
+                        confirmLoading={confirmLoading}
+                        onCancel={handleCancel}
+                    >
+                        <Label>Why are you cancelling this booking, please specify the reason below</Label>
+                        <Input type='text' placeholder='enter the reason here' onChange={(e) => setReasonForCancel(e.target.value)} value={reasonForCancel} />
+                    </Modal>
                 </InnerContainer>
             </Container>
         </>

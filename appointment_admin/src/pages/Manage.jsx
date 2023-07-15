@@ -55,9 +55,12 @@ const Button = styled.button`
 const ButtonJi = styled.button`
   border: none;
   border-radius: 4px;
+  font-size: 16px;
   margin-left: 5px;
   margin-right: 5px;
   padding: 8px;
+  padding-left: 20px;
+  padding-right: 20px;
   color: white;
   background-color: blue;
 `

@@ -670,11 +670,14 @@ router.post("/delete", async (req, res) => {
     // console.log(slotData[0].slotBookingsData[0])
 
     //pushing deleted booking to deltedField
+    const obj = slotData[0].slotBookingsData[0]._doc
+    const dataToPush = {reasonForCancel: req.body.reasonForCancel, ...obj}
+    console.log(dataToPush)
     await Slot.findOneAndUpdate({
       studioNo: req.body.studioNo, timingNo: req.body.timingNo
     }, {
       $push: {
-        'deletedData.slotBookingsData': slotData[0].slotBookingsData[0]
+        'deletedData.slotBookingsData': dataToPush
       }
     })
 
@@ -730,6 +733,7 @@ router.post("/delete", async (req, res) => {
         program: data._doc.program,
         timing: getTimingNoString(req.body.timingNo),
         slotNo: req.body.studioNo,
+        reasonForCancel: req.body?.reasonForCancel
       }
       await sendEmail(req, res, data._doc.userEmail, 'Studio Booking Confirmed', bookingDoneTemplateId, dynamicTemplateDataTwo)
       const userQueue = await User.findOne({ email: data._doc.userEmail })
@@ -753,6 +757,7 @@ router.post("/delete", async (req, res) => {
       program: slotData[0].slotBookingsData[0].program,
       timing: getTimingNoString(req.body.timingNo),
       slotNo: req.body.studioNo,
+      reasonForCancel: req.body.reasonForCancel
     }
     //sending deleting mail
     await sendEmail(req, res, slotData[0].slotBookingsData[0].userEmail, `Studio Booking Cancelled`, deleteDoneTemplateId, dynamicTemplateData)

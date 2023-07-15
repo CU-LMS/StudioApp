@@ -27,7 +27,7 @@ const OuterContainer = styled.div`
 const Container = styled.div`
     width: auto;
     max-height: 55vh;
-    overflow-y: auto;
+    /* overflow-y: auto; */
     margin: 10px;
     padding: 10px;
     /* background-color: green; */
@@ -90,8 +90,14 @@ const Form = styled.form`
 const Input = styled.input`
 `
 const Select = styled.select`
+    margin: 10px;
+    padding: 10px;
+    border-radius: 4px;
 `
 const Option = styled.option`
+    padding: 10px;
+    margin: 10px;
+
 `
 const Slot = ({ setDatePickerOpen, slotType }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -182,10 +188,10 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
     const antIcon = (
         <LoadingOutlined
             style={{
-                fontSize: 110,
-                alignSelf: 'center',
+                fontSize: 80,
+                // alignSelf: 'center',
                 marginTop: "10px",
-                marginRight: "200px"
+                // marginRight: "50px"
             }}
             spin
         />
@@ -225,7 +231,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
         {contextHolder}
         {showSlots == false ? <TakeAction /> : <>
             <Container>
-                <Spin indicator={antIcon} spinning={state.posting || loading} size='large'>
+                <Spin indicator={antIcon} spinning={state.posting || loading} size='small'>
                     <Studio>
                         <Name>Studio</Name>
                     </Studio>
