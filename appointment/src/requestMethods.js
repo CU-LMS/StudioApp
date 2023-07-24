@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = "http://localhost:8800/api"
-const PRODUCTION_URL = "http://3.110.176.68/api"
+const PRODUCTION_URL = "https://studioapi.idolcu.in/api"
 
 
 let TOKEN;
@@ -13,9 +13,9 @@ const getToken = ()=>{
 getToken()
 
 export const publicRequest = axios.create({
-    baseURL: BASE_URL
+    baseURL: PRODUCTION_URL
 })
 export const userRequest = axios.create({
-    baseURL: BASE_URL,
+    baseURL: PRODUCTION_URL,
     headers: {token: `Bearer ${TOKEN}`}
 })
