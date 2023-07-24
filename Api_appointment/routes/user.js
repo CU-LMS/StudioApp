@@ -139,8 +139,13 @@ router.post("/:userId", async (req, res) => {
 
 router.post("/role/:userId", async(req,res)=>{
     try {
+        let additionalQuery = {}
+        if(req.body.role === 'admin' || req.body.role === 'manager' || req.body.role === 'provc'){
+            additionalQuery.isAdmin = true
+        }
         await User.findOneAndUpdate({_id: req.params.userId},{
-            role: req.body.role
+            role: req.body.role,
+            ...additionalQuery
         })
         res.status(201).json({msg: "role changed successfully"})
     } catch (error) {
