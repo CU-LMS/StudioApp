@@ -30,7 +30,7 @@ const Text = styled.p`
     color: ${props => props.active === true ? "#fff" : "#333"};
     margin-bottom: 0;
 `
-const Box = ({ slot, studioUnavailable }) => {
+const Box = ({ slot, studioUnavailable,slotType }) => {
     const [active, setActive] = useState(false)
     const [reserveActive, setReserveActive] = useState(false)
     const { bookedSlots, activeIds, handleSlotActive, disableSlots, unCheckSlotActive, dateString, loading, setTimingNo } = useContext(SlotStatusContext)
@@ -65,7 +65,8 @@ const Box = ({ slot, studioUnavailable }) => {
     useEffect(() => {
         setActive(false)
         setReserveActive(false)
-    }, [dateString, loading])
+        unCheckSlotActive()
+    }, [dateString, loading,slotType])
     return (
         //arr1.some( ai => arr2.includes(ai) );  arr2 include atleast one element of arr1
         //arr1.every( ai => arr2.includes(ai) ); arr2 include every element of arr1

@@ -296,14 +296,14 @@ const Slot = ({ setDatePickerOpen }) => {
                 </Studio>
                 <Slots>
                     {data.map((item) => {
-                        return <Column item={item} unavailableStudios={unavailableStudios} />
+                        return <Column item={item} unavailableStudios={unavailableStudios} key={item.idx}/>
                     })}
                 </Slots>
             </Spin>
         </Container>
         {showButton && !fullSlot && <Button onClick={handleBook} disable={state.posting || loading}>Book Now</Button>}
         {fullSlot && showButton && <Button onClick={handleBook} disable={state.posting || loading}>Book Full Slot</Button>}
-        <Modal title={`You are booking slot ${activeId % 10} of studio ${Math.floor(activeId / 10)}`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <Modal title={`You are booking slot ${activeId % 10} of studio ${Math.floor(activeId / 10)}`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel} okButtonProps={{disabled: program === ""?true:false}}>
             <Title>Enter the program</Title>
             <Form>
                 <Input placeholder="eg: MBA" onChange={(e) => setProgram(e.target.value)} />

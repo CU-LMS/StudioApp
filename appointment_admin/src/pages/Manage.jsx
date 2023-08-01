@@ -295,7 +295,7 @@ const Manage = () => {
                                                     bookings.length > 0 &&
                                                     bookings?.map(booking => {
                                                         return (
-                                                            <Tooltip title={booking?.slotBookingsData?.defaulted === true ? `${booking?.slotBookingsData?.reasonForDefault}` : (booking?.slotBookingsData?.completed === true ? `${booking?.slotBookingsData?.reasonForCompleted}` : null)}>
+                                                            <Tooltip title={booking?.slotBookingsData?.defaulted === true ? `${booking?.slotBookingsData?.reasonForDefault}` : (booking?.slotBookingsData?.completed === true ? `${booking?.slotBookingsData?.reasonForCompleted}` : null)} key={booking?.slotBookingsData?._id}>
                                                                 <tr key={booking?.bookings?._id} className={booking?.slotBookingsData?.defaulted === true ? 'table-danger' : (booking?.slotBookingsData?.completed === true ? 'table-success' : null)}>
                                                                     <td>{booking.slotBookingsData._id}</td>
                                                                     <td>{booking.studioNo}</td>
@@ -342,6 +342,7 @@ const Manage = () => {
                             onOk={handleOk}
                             confirmLoading={confirmLoading}
                             onCancel={handleCancel}
+                            okButtonProps={{disabled: reasonForDefault===""?true:false}}
                         >
                             <p>Please specify the reason why you are marking this person as defaulter for this booking</p>
                             <InputJi type='text' placeholder='reason for defaulting' onChange={(e) => setReasonForDefault(e.target.value)} value={reasonForDefault} autoFocuc={true} />
@@ -352,6 +353,7 @@ const Manage = () => {
                             onOk={handleOkGreen}
                             confirmLoading={confirmLoading}
                             onCancel={handleCancelGreen}
+                            okButtonProps={{disabled: reasonForCompleted===""?true:false}}
                         >
                             <p>Please specify the reason why you are marking this person as successfully completed</p>
                             <InputJi type='text' placeholder='reason for completing successfully' onChange={(e) => setReasonForCompleted(e.target.value)} value={reasonForCompleted} autoFocuc={true} />

@@ -77,7 +77,7 @@ const StudioConfigure = () => {
               <Studios>
                 {
                   studioStatus.length > 0 && studioStatus.map(studio => {
-                    return <IconCard studio={studio} setChangeAction={setChangeAction} setLoading={setLoading}/>
+                    return <IconCard studio={studio} setChangeAction={setChangeAction} setLoading={setLoading} key={studio._id}/>
                   })
                 }
               </Studios>

@@ -23,7 +23,37 @@ const OuterContainer = styled.div`
 `
 const Container = styled.div`
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-around;
+`
+const Card = styled.div`
+    display: flex;
+    margin-top: auto;
+    margin-bottom: auto;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 10px;
+    align-items: center;
+    box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
+`
+const Colors = styled.ul`
+    list-style: none;
+    margin: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`
+const Color = styled.li`
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+`
+const ColorIndicator = styled.div`
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    margin-right:10px;
+    background-color: ${props => props.type == "completed" ? "#5af542" : (props.type == 'defaulted' ? "#fa4b4b" : (props.type == 'noAction' ? "#6C757D" : (props.type == 'notBooked' ? '#DEE2E6' : null)))};
 `
 const Home = () => {
     const { dispatch } = useContext(SlotStatusContext)
@@ -44,6 +74,14 @@ const Home = () => {
                 <Navbar />
                 <Container>
                     <DatesPicker datePickerOpen={datePickerOpen} />
+                    <Card>
+                        <Colors>
+                            <Color ><ColorIndicator type='completed' />Completed</Color>
+                            <Color ><ColorIndicator type='defaulted' />Defaulted</Color>
+                            <Color ><ColorIndicator type='noAction' />No Action yet</Color>
+                            <Color ><ColorIndicator type='notBooked' />Not booked</Color>
+                        </Colors>
+                    </Card>
                     <Slot setDatePickerOpen={setDatePickerOpen} />
                 </Container>
             </OuterContainer>

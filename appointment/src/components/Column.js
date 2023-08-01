@@ -13,7 +13,7 @@ const ColumnContainer = styled.div`
     flex-direction: column;
     justify-content: space-evenly;
 `
-const Column = ({ item, unavailableStudios }) => {
+const Column = ({ item, unavailableStudios,slotType }) => {
   const [studioUnavailable, setStudioUnavailable] = useState(false)
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const Column = ({ item, unavailableStudios }) => {
   return (
     <ColumnContainer>
       {item.slots.map(slot => {
-        return <Box slot={slot} studioUnavailable={studioUnavailable}/>
+        return <Box slot={slot} studioUnavailable={studioUnavailable} slotType={slotType}/>
       })}
     </ColumnContainer>
   )

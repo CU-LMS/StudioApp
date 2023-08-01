@@ -214,7 +214,7 @@ const Requests = () => {
             </MainContent> : !loading &&
             <Result
               status="404"
-              title="There are no bookings created by teachers"
+              title="There are no bookings created by teachers for future"
               subTitle="You are free today, feel free to read some News"
               style={{ margin: '60px' }}
             />

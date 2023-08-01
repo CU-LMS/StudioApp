@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { userRequest } from '../requestMethods'
 import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import { getTimingStringFromTimingNoOfSlot } from '../utils/dateUtils'
 
 const Container = styled.div`
     display: flex;
@@ -116,6 +117,7 @@ const MyBookings = () => {
             }
         }
         try {
+            setLoading(true)
             await userRequest.post(url, {
                 ...payload
             })
@@ -223,11 +225,9 @@ const MyBookings = () => {
                             <table className='table text-center table-hover table-bordered'>
                                 <tbody>
                                     <tr>
-                                        <th>
-                                            Booking Id
-                                        </th>
                                         <th>Studio No</th>
                                         <th>Slot No</th>
+                                        <th>Timing</th>
                                         <th>Type</th>
                                         <th>Date</th>
                                         {bookingsType == 'waiting' ? <th>Waiting Number</th> : null}
@@ -241,9 +241,9 @@ const MyBookings = () => {
                                             bookings?.map(booking => {
                                                 return (
                                                     <tr key={booking?.bookings?._id}>
-                                                        <td>{booking?.bookings?._id}</td>
                                                         <td>{booking?.studioNo}</td>
                                                         <td>{Math.trunc(booking?.slotNo % 10)}</td>
+                                                        <td>{getTimingStringFromTimingNoOfSlot(booking?.timingNo)}</td>
                                                         <td>{booking?.type}</td>
                                                         <td>{localDateStringToDDMMYYYY(booking.bookings?.date)}</td>
                                                         {bookingsType == 'waiting' ? <td>{booking.bookings?.waitingNo}</td> : null}
@@ -259,9 +259,9 @@ const MyBookings = () => {
                                                 return (
                                                     <Tooltip title={booking?.slotBookingsData?.defaulted === true ? `${booking?.slotBookingsData?.reasonForDefault}` : (booking?.slotBookingsData?.completed === true ? `${booking?.slotBookingsData?.reasonForCompleted}` : null)}>
                                                         <tr key={booking?.slotBookingsData?._id} className={booking.slotBookingsData?.defaulted == true ? "table-danger" : booking.slotBookingsData?.completed == true ? "table-success" : null}>
-                                                            <td>{booking?.slotBookingsData?._id}</td>
                                                             <td>{booking?.studioNo}</td>
                                                             <td>{Math.trunc(booking?.slotNo % 10)}</td>
+                                                            <td>{getTimingStringFromTimingNoOfSlot(booking?.timingNo)}</td>
                                                             <td>{booking?.type}</td>
                                                             <td>{localDateStringToDDMMYYYY(booking?.slotBookingsData?.date)}</td>
                                                             <td>{booking?.slotBookingsData?.program}</td>
@@ -289,6 +289,7 @@ const MyBookings = () => {
                         onOk={handleOk}
                         confirmLoading={confirmLoading}
                         onCancel={handleCancel}
+                        okButtonProps={{ disabled: reasonForCancel === '' ? true : false }}
                     >
                         <Label>Why are you cancelling this booking, please specify the reason below</Label>
                         <Input type='text' placeholder='enter the reason here' onChange={(e) => setReasonForCancel(e.target.value)} value={reasonForCancel} />

@@ -11,9 +11,10 @@ const BoxContainer = styled.div`
     margin: 10px;
     padding: 10px;
     display:flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color:  ${props => props.unavailable ? "#DEE2E6" : (props.booked ? "#6C757D" : (props.active ? "#ef233c" : (props.bulkActive ? "#d38200" : "#DEE2E6")))};
+    background-color:  ${props => props.unavailable ? "#DEE2E6" : (props.booked ? (props.completed ===true?'#5af542': (props.defaulted ===true?'#fa4b4b': "#6C757D")) : (props.active ? "#2f8ed6" : (props.bulkActive ? "#d38200" : "#DEE2E6")))};
     margin: 8px;
     border-radius: 8px;
     border-style: solid;
@@ -25,7 +26,10 @@ const BoxContainer = styled.div`
     transform: ${props => props.unavailable == true ? "scale(1)" : "scale(0.98)"}
   } 
 `
-const Text = styled.p``
+const Text = styled.p`
+    margin: 0;
+    font-size: 10px;
+`
 
 const Hr = styled.hr`
 
@@ -33,7 +37,7 @@ const Hr = styled.hr`
 
 const Box = ({ slot, studioUnavailable }) => {
     const [active, setActive] = useState(false)
-    const { bookedSlots, activeId, handleSlotActive, disableSlots, unCheckSlotActive, dateString, loading, bulkIdsActive, bulkOn } = useContext(SlotStatusContext)
+    const { bookedSlots, activeId, handleSlotActive, disableSlots, unCheckSlotActive, dateString, loading, bulkIdsActive, bulkOn,bookedSlotsData } = useContext(SlotStatusContext)
     const handleClick = (slotId) => {
 
         if (!bookedSlots.includes(slot.id) && !disableSlots.includes(slotId) && !bulkOn) {
@@ -64,10 +68,18 @@ const Box = ({ slot, studioUnavailable }) => {
     //     })[0]?.activeStatus)
     // }, [])
     // console.log(unavailable)
+    // console.log(bookedSlotsData)
+    const filteredBookingForBox = bookedSlotsData?.filter(item=>item.slotNo==slot.id)
+    let name=''
+    if(filteredBookingForBox?.length>0){
+        name = filteredBookingForBox[0]?.user_doc[0]
+        console.log(filteredBookingForBox)
+    }
     return (
-        <Tooltip title={bookedSlots.includes(slot.id) ? "booked" : (disableSlots.includes(slot.id) ? "unselect previous" : null)} color={bookedSlots.includes(slot.id) ? "cyan" : "red"}>
-            <BoxContainer active={active} onClick={() => handleClick(slot.id)} booked={bookedSlots.includes(slot.id)} disable={disableSlots.includes(slot.id)} bulkActive={bulkIdsActive.includes(slot.id)} unavailable={studioUnavailable}>
+        <Tooltip title={bookedSlots.includes(slot.id) ? ((filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.completed === true)? "completed": (filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.defaulted===true?"defaulted": "no action taken")) : (disableSlots.includes(slot.id) ? "unselect previous" : null)} color={bookedSlots.includes(slot.id) ? ((filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.completed === true)? "#5af542": (filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.defaulted===true?"#fa4b4b": "grey")) : (disableSlots.includes(slot.id) ? "red" : null)}>
+            <BoxContainer active={active} onClick={() => handleClick(slot.id)} booked={bookedSlots.includes(slot.id)} disable={disableSlots.includes(slot.id)} bulkActive={bulkIdsActive.includes(slot.id)} unavailable={studioUnavailable} completed={filteredBookingForBox?.length>0?filteredBookingForBox[0].slotBookingsData.completed:false} defaulted={filteredBookingForBox?.length>0?filteredBookingForBox[0].slotBookingsData.defaulted:false}>
                 {studioUnavailable === true ? <CgUnavailable size={50} color='#aaaaaa' /> : <Text>{slot.time}</Text>}
+                {bookedSlots.includes(slot.id) === true? <Text>{`${name?.name} ${name?.lastname}`}</Text>:''}
             </BoxContainer>
         </Tooltip>
     )

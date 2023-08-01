@@ -9,12 +9,14 @@ import { SlotStatusContext } from '../context/SlotStatusContext';
 import { Radio, Space } from 'antd';
 import TypeWriter from 'typewriter-effect'
 import CuBackgroud from '../assets/cubackground.jpg'
+import { getCountCancelled, getCountPast, getCountToday, getCountUpcoming, getCountWaiting } from '../utils/statsUtils';
+import { AuthContext } from '../context/AuthContext';
 
 const OuterContainer = styled.div`
-    height: 100vh;
-    /* background: hsla(355, 77%, 52%, 1);
-    background: radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, #002142 85%);
-    background: -webkit-radial-gradient(circle, hsla(355, 77%,52%,1)0%); */
+    height: 110vh;
+     /* background: hsla(355, 77%, 52%, 1); */
+     /* background: rgb(238,105,105); */
+/* background: radial-gradient(circle, rgba(238,105,105,1) 23%, rgba(255,255,255,1) 96%); */
     background: linear-gradient(rgba(115,115,115,0.89), rgba(115,115,115,0.89)), url("https://images.news18.com/ibnlive/uploads/2022/01/untitled-design-1-1-164371082616x9.jpg") center;
 `
 const SmallContainer = styled.div`
@@ -23,7 +25,7 @@ const SmallContainer = styled.div`
     justify-content: center;
     align-items: center;
     padding: 40px 0;
-    color: #d90429;
+    color: #000;
     font-size: 25px;
     font-weight: 600;
     letter-spacing: 1.2px;
@@ -33,17 +35,27 @@ const Container = styled.div`
     justify-content: space-evenly;
 `
 const RadioContainer = styled.div`
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 `
 const Card = styled.div`
     display: flex;
-    margin-top: 80px;
+    margin-top: 40px;
     background-color: #f1f1f1;
     padding: 10px;
     border-radius: 10px;
     align-items: center;
     box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
+`
+const StatCard = styled.div`
+    margin-top: 40px;
+    padding: 18px;
+    border-radius: 10px;
+    background-color: #f1f1f1;
+    box-shadow: 0px 1px 9px -1px rgba(179,173,179,1);
+    width: 450px;
 `
 const Colors = styled.ul`
     list-style: none;
@@ -74,6 +86,27 @@ const Home = () => {
     const { dispatch } = useContext(SlotStatusContext)
     const [datePickerOpen, setDatePickerOpen] = useState(true)
     const [slotType, setSlotType] = useState("");
+    const [loadingStats,setLoadingStats] = useState(false)
+    const { user } = useContext(AuthContext)
+    const [cancelledCount, setCancelledCount] = useState(0)
+    const [waitingCount,setWaitingCount] = useState(0)
+    const [pastCount,setPastCount] = useState(0)
+    const [upcomingCount,setUpcomingCount]=useState(0)
+    const [todayCount,setTodayCount] = useState(0)
+
+    useEffect(()=>{
+        
+        const getDifferenData = ()=>{
+    setLoadingStats(true)
+         getCountCancelled(user).then(res=>setCancelledCount(res))
+         getCountPast(user).then(res=>setPastCount(res))
+         getCountUpcoming(user).then(res=>setUpcomingCount(res))
+         getCountToday(user).then(res=>setTodayCount(res))
+         getCountWaiting(user).then(res=>setWaitingCount(res))
+         setLoadingStats(false)
+        }
+         getDifferenData()
+    },[])
 
     const onChange = (e) => {
         setSlotType(e.target.value);
@@ -88,21 +121,21 @@ const Home = () => {
     //     // slotStatusesWithType(dispatch,stringDate,slotType)
     // }, [slotType,stringDate])
     return (
-        <OuterContainer>            
-        <Navbar />
-        <SmallContainer>
-            <TypeWriter
-                options={{
-                    strings: ['Welcome To IDOL Department Studio Reservation System'],
-                    autoStart: true,
-                    loop: true,
-                }}
+        <OuterContainer>
+            <Navbar />
+            <SmallContainer>
+                <TypeWriter
+                    options={{
+                        strings: ['Welcome To IDOL Department Studio Reservation System'],
+                        autoStart: true,
+                        loop: true,
+                    }}
                 />
-        </SmallContainer>
+            </SmallContainer>
             <Container>
                 <DatesPicker datePickerOpen={datePickerOpen} />
                 <RadioContainer>
-                    <Radio.Group onChange={onChange} value={slotType} size='large' style={{ backgroundColor: "#f1f1f1", padding: '10px', borderRadius: '10px',boxShadow: '0px 1px 9px -1px rgba(179,173,179,1)' }}>
+                    <Radio.Group onChange={onChange} value={slotType} size='large' style={{ backgroundColor: "#f1f1f1", padding: '10px', borderRadius: '10px', boxShadow: '0px 1px 9px -1px rgba(179,173,179,1)' }}>
                         <Space direction='vertical' style={{ margin: '8px', padding: '8px' }}>
                             <Radio value='theory'>Theory</Radio>
                             <Radio value='numerical'>Numerical</Radio>
@@ -115,6 +148,31 @@ const Home = () => {
                             <Color ><ColorIndicator type='selectedBooked' />In Queue</Color>
                         </Colors>
                     </Card>
+                    <StatCard>
+                        {loadingStats === true?'loading':
+                            <div style={{ display: 'flex', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                                <p style={{margin: '0'}}>Today</p>
+                                <p style={{fontSize: '35px', fontWeight: 'bold', color: 'rgb(160, 32, 240)',margin: '0' }}>{todayCount}</p>
+                            </div>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                                <p style={{margin: '0'}}>Past</p>
+                                <p style={{fontSize: '35px', fontWeight: 'bold', color: 'rgb(160, 32, 240)',margin: '0' }}>{pastCount}</p>
+                            </div>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                                <p style={{margin: '0'}}>Upcoming</p>
+                                <p style={{fontSize: '35px', fontWeight: 'bold', color: 'rgb(160, 32, 240)', margin: '0'}}>{upcomingCount}</p>
+                            </div>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                                <p style={{margin: '0'}}>Queue</p>
+                                <p style={{fontSize: '35px', fontWeight: 'bold', color: 'rgb(160, 32, 240)',margin: '0' }}>{waitingCount}</p>
+                            </div>
+                            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                                <p style={{margin: '0'}}>Cancelled</p>
+                                <p style={{fontSize: '35px', fontWeight: 'bold', color: 'rgb(160, 32, 240)',margin: '0' }}>{cancelledCount}</p>
+                            </div>
+                        </div>}
+                    </StatCard>
                 </RadioContainer>
                 <Slot setDatePickerOpen={setDatePickerOpen} slotType={slotType} setSlotType={setSlotType} />
             </Container>

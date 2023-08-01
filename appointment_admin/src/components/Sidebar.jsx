@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext"
 
 const Container = styled.div`
 width: 180px;
-height: 100vh;
+height: 130vh;
 padding: 20px;
 background-color: #ffffffff;
  /* background: radial-gradient(circle, hsla(355, 77%, 52%, 1) 0%, #002142 85%); */

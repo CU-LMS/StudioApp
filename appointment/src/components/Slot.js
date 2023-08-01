@@ -26,10 +26,10 @@ const OuterContainer = styled.div`
 `
 const Container = styled.div`
     width: auto;
-    max-height: 55vh;
+    /* max-height: 60vh; */
     /* overflow-y: auto; */
-    margin: 10px;
-    padding: 10px;
+    /* margin: 10px; */
+    padding: 10px;  
     /* background-color: green; */
     background-color: #fff;
     display: flex;
@@ -72,7 +72,7 @@ height: 40px;
   outline: 0;
   text-transform: uppercase;
   margin: 6px;
-  cursor: ${props => props.disableJi == true ? "not-allowed": "pointer"};
+  cursor: ${props => props.disableJi == true ? "not-allowed" : "pointer"};
   transition: ease background-color 250ms;
   border: none;
   &:hover {
@@ -115,7 +115,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
         'token': `Bearer ${user?.accestoken}`
     }
     const handleBook = () => {
-        if (activeIds.length>0) {
+        if (activeIds.length > 0) {
             setDatePickerOpen(false)
             setIsModalOpen(true)
         } else {
@@ -237,13 +237,13 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
                     </Studio>
                     <Slots>
                         {newData.map((item) => {
-                            return item.type === slotType && <Column item={item} unavailableStudios={unavailableStudios}/>
+                            return item.type === slotType && <Column item={item} unavailableStudios={unavailableStudios} slotType={slotType} />
                         })}
                     </Slots>
                 </Spin>
             </Container>
-            <Button onClick={handleBook} disableJi={state.posting || loading || (activeIds.length==0)}>Book Now</Button>
-            <Modal title={`You are booking ${slotType} slot`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <Button onClick={handleBook} disableJi={state.posting || loading || (activeIds.length == 0)}>Book Now</Button>
+            <Modal title={`You are booking ${slotType} slot`} open={isModalOpen} onOk={handleOk} onCancel={handleCancel} okButtonProps={{ disabled: program === '' ? true : false }}>
                 <Title>Select the program</Title>
                 <Form>
                     {/* <Input placeholder="eg: MBA" onChange={(e) => setProgram(e.target.value)} /> */}
@@ -268,6 +268,9 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
                             ))
                         }
                     </Select>
+                    {program === '' ? <div style={{ marginLeft: '10px' }}>
+                        <span style={{ color: 'red' }}>*Please select a program*</span>
+                    </div>: ''}
                 </Form>
             </Modal>
 

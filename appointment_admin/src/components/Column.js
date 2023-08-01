@@ -28,7 +28,7 @@ const Column = ({item,unavailableStudios}) => {
   return (
     <ColumnContainer>
         {item.slots.map(slot=>{
-           return  <Box slot={slot} studioUnavailable={studioUnavailable}/>
+           return  <Box slot={slot} studioUnavailable={studioUnavailable} key={slot.id}/>
         })}
     </ColumnContainer>
   )

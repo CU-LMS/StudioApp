@@ -3,6 +3,7 @@ const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require("./verifyTo
 const User = require('../models/User');
 const Slot = require('../models/Slot');
 const sendEmail = require('./email');
+const sendTemplatedEmailSES = require('./emailSES')
 const mongoose = require('mongoose');
 const { oAuth2Client } = require('../middleware/verifyGoogle');
 const { google } = require('googleapis');
@@ -291,7 +292,8 @@ router.post("/", async (req, res, next) => {
         slotNo: Math.trunc(randomSlotNoWaiting / 10),
         waitingNo: newWaitingNumber
       }
-      await sendEmail(req, res, req.body.email, 'Studio Booking in Waiting Queue Successfull', waitingDoneTemplateId, dynamicTemplateDataForWaiting)
+      // await sendEmail(req, res, req.body.email, 'Studio Booking in Waiting Queue Successfull', waitingDoneTemplateId, dynamicTemplateDataForWaiting)
+      await sendTemplatedEmailSES(req.body.email,'studio-booking-waiting-idol',dynamicTemplateData)
       return res.status(201).json({ msg: `reserve booking has been made in studio ${Math.trunc(randomSlotNoWaiting / 10)} and slot ${randomSlotNoWaiting % 10}`, waitingNo: newWaitingNumber })
     }
     const slotNos = availableSlots.map(slot => slot.slotNo)
@@ -319,7 +321,8 @@ router.post("/", async (req, res, next) => {
       timing: getTimingNoString(req.body.timingNo),
       slotNo: Math.trunc(randomSlotNo / 10),
     }
-    await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+    // await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+    await sendTemplatedEmailSES(req.body.email,'studio-booking-confirmed-idol', dynamicTemplateData)
     const user = await User.findOne({ email: req.body.email })
     const refreshToken = user.refreshTokenGoogle
     const description = `You have a booking at Studio Number ${Math.trunc(randomSlotNo / 10)} on date: ${localDateStringToDDMMYYYY(req.body.slotBookingData.date)}, time: ${getTimingNoString(req.body.timingNo)} for the program: ${req.body.slotBookingData.program}. Please report 10 minutes before the slot time`
@@ -572,7 +575,8 @@ router.post("/admin", async (req, res, next) => {
       timing: getTimingNoString(updatedSlot.timingNo),
       slotNo: Math.trunc(updatedSlot.slotNo / 10),
     }
-    await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+    // await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
+    await sendTemplatedEmailSES(req.body.email,'studio-booking-confirmed-idol',dynamicTemplateData)
     res.status(200).json({ msg: `booking has been made in studio ${Math.trunc(req.body.slotNo / 10)} and slot ${req.body.slotNo % 10}`, studio: Math.trunc(req.body.slotNo / 10), slot: (req.body.slotNo % 10), type: updatedSlot.type })
   } catch (err) {
     res.status(302).json("This slot already booked or there is some error in backend");
@@ -586,7 +590,39 @@ router.post("/status", async (req, res) => {
   try {
     const slots = await Slot.find({ 'slotBookingsData.date': { $eq: new Date(req.body.date) } });
     const slotNos = slots.map(slot => slot.slotNo)
-    res.status(200).json(slotNos)
+    const slotData = await Slot.aggregate([
+      {
+        '$match': {
+          'slotBookingsData.date': new Date(req.body.date)
+        }
+      }, {
+        '$unwind': {
+          'path': '$slotBookingsData'
+        }
+      }, {
+        '$match': {
+          'slotBookingsData.date': new Date(req.body.date)
+        }
+      }, {
+        '$lookup': {
+          'from': 'users', 
+          'localField': 'slotBookingsData.userEmail', 
+          'foreignField': 'email', 
+          'as': 'user_doc', 
+          'pipeline': [
+            {
+              '$project': {
+                'name': 1, 
+                'lastname': 1, 
+                'email': 1, 
+                'role': 1
+              }
+            }
+          ]
+        }
+      }
+    ])
+    res.status(200).json({slotNos,slotData})
   } catch (err) {
     console.log(err)
   }
@@ -735,7 +771,8 @@ router.post("/delete", async (req, res) => {
         slotNo: req.body.studioNo,
         reasonForCancel: req.body?.reasonForCancel
       }
-      await sendEmail(req, res, data._doc.userEmail, 'Studio Booking Confirmed', bookingDoneTemplateId, dynamicTemplateDataTwo)
+      // await sendEmail(req, res, data._doc.userEmail, 'Studio Booking Confirmed', bookingDoneTemplateId, dynamicTemplateDataTwo)
+      await sendTemplatedEmailSES(data._doc.userEmail, 'studio-booking-confirmed-idol', dynamicTemplateData)
       const userQueue = await User.findOne({ email: data._doc.userEmail })
       const refreshTokenUserQueue = userQueue.refreshTokenGoogle
       const descriptionTwo = `You have a booking at Studio Number ${req.body.studioNo} on date: ${localDateStringToDDMMYYYY(req.body.date)}, time: ${getTimingNoString(req.body.timingNo)} for the program: ${data._doc.program}. Please report 10 minutes before the slot time`
@@ -760,7 +797,8 @@ router.post("/delete", async (req, res) => {
       reasonForCancel: req.body.reasonForCancel
     }
     //sending deleting mail
-    await sendEmail(req, res, slotData[0].slotBookingsData[0].userEmail, `Studio Booking Cancelled`, deleteDoneTemplateId, dynamicTemplateData)
+    // await sendEmail(req, res, slotData[0].slotBookingsData[0].userEmail, `Studio Booking Cancelled`, deleteDoneTemplateId, dynamicTemplateData)
+    await sendTemplatedEmailSES(slotData[0].slotBookingsData[0].userEmail,'studio-booking-deleted-idol',dynamicTemplateData)
     res.json({ msg: "done" })
   } catch (error) {
     console.log(error)
@@ -1146,6 +1184,47 @@ router.post("/end", async (req, res) => {
     res.status(201).json({ msg: 'done' })
   } catch (error) {
     console.log(error.message)
+  }
+})
+
+//quick stats homepage for user
+router.post("/quick-stats", async(req,res)=>{
+  let typeOfHistoryQuery = {}
+  if (req.body.bookingsType == "upcoming") {
+    typeOfHistoryQuery = { $gt: new Date(req.body.dateString) }
+  } else if (req.body.bookingsType == "past") {
+    typeOfHistoryQuery = { $lt: new Date(req.body.dateString) }
+  } else if (req.body.bookingsType == "today") {
+    typeOfHistoryQuery = { $eq: new Date(req.body.dateString) }
+  } else {
+    const defaultQuery = { $gte: new Date(req.body.dateSring) }
+    typeOfHistoryQuery = defaultQuery
+  }
+  try {
+    const bookings = await Slot.aggregate([{
+      '$unwind': {
+        'path': '$slotBookingsData'
+      }
+    }, {
+      '$match': {
+        'slotBookingsData.userEmail': req.body.userEmail,
+        'slotBookingsData.date': typeOfHistoryQuery
+      }
+    }, {
+      $project: {
+        slotBookingsData: 1, slotNo: 1, studioNo: 1, type: 1, timingNo: 1, _id: 0
+      }
+    },
+    {
+      $sort: {
+        "slotBookingsData.date": 1,
+        "slotBookingsData.bookedAt": 1
+      }
+    }])
+    res.status(201).json({ count: bookings.length, bookings })
+  } catch (error) {
+    res.status(401).json({ msg: 'there is some error', err: error.message })
+
   }
 })
 

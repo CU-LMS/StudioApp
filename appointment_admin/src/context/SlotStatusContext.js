@@ -7,6 +7,7 @@ const INITIAL_STATE = {
     bookedSlots: [],
     loading: false,
     error: null,
+    bookedSlotsData: []
 };
 const SLOT_NO_LIST = [
     11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 31, 32, 33, 34, 35, 41, 42, 43, 44, 45
@@ -23,9 +24,10 @@ const SlotStatusReducer = (state, action) => {
             };
         case "GET_STATUS_SUCCESS":
             return {
-                bookedSlots: action.payload,
+                bookedSlots: action.payload.slotNos,
                 loading: false,
                 error: null,
+                bookedSlotsData: action.payload.slotData
             };
         case "GET_STATUS_FAILURE":
             return {
@@ -93,6 +95,7 @@ export const SlotStatusContextProvider = ({ children }) => {
         <SlotStatusContext.Provider
             value={{
                 bookedSlots: state.bookedSlots,
+                bookedSlotsData: state.bookedSlotsData,
                 loading: state.loading,
                 error: state.error,
                 dispatch,

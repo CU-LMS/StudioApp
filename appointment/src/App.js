@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import MyBookings from "./pages/MyBookings";
+import Privacy from "./pages/Privacy";
 function App() {
   const { user } = useContext(AuthContext)
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login"/>}/>
+        <Route path="/privacy" element={<Privacy/>}/>
       </Routes>
     </BrowserRouter>
   );

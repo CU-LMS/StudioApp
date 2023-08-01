@@ -30,7 +30,7 @@ const DatesPicker = ({ datePickerOpen }) => {
   }
   return (
     <Container>
-      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px" }} size="large" disabledDate={disabledDate} />
+      <DatePicker onChange={onChange} open={datePickerOpen} style={{ width: "288px", fontSize: "28px" }} size="large"/>
     </Container>
   )
 }
