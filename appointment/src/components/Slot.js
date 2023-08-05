@@ -208,7 +208,7 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
 
     const getProgramList = async () => {
         try {
-            const res = await publicRequest.get(`/program?semester=${semester}&programName=${programName}`)
+            const res = await publicRequest.get(`/program?semester=${semester}&programName=${programName}&fetchType=teacher`)
             setPrograms(res.data.programs)
         } catch (error) {
             console.log(error)

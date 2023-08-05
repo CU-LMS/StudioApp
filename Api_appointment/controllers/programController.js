@@ -47,6 +47,11 @@ const getPrograms = async (req, res) => {
 
         let programs = Program.find(query).sort({ semester: 1, programName: 1, courseName: 1 })
 
+        if(req.query.fetchType === 'teacher'){
+            programs = await programs
+            return res.status(200).json({count: programs.length, programs})
+        }
+
         // pagination and limit
         const page = Number(req.query.page) || 1
         const limit = Number(req.query.limit) || 8  //by default 10 is the limit of objects to fetch
