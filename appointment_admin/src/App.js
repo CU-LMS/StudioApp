@@ -14,6 +14,7 @@ import Programs from "./pages/Programs";
 import StudioConfigure from "./pages/StudioConfigure";
 import Manage from "./pages/Manage";
 import Privacy from "./pages/Privacy";
+import Cancelled from "./pages/Cancelled";
 
 function App() {
   const { user } = useContext(AuthContext)
@@ -27,6 +28,7 @@ function App() {
         <Route path="/requests" element={user?.isAdmin ?<Requests />: <Login/>} />
         <Route path="/programs" element={user?.isAdmin ?<Programs />: <Login/>} />
         <Route path="/configure" element={user?.isAdmin ?<StudioConfigure />: <Login/>} />
+        <Route path="/cancelled" element={user?.isAdmin ?<Cancelled />: <Home/>} />
         <Route path="/manage" element={user?.role==='manager' ?<Manage />: <Home/>} />
         <Route path="/privacy" element={<Privacy/>} />
       </Routes>

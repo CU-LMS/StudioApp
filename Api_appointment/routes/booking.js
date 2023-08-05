@@ -16,19 +16,19 @@ const getTimingNoString = (timingNO) => {
   let time = ""
   switch (timingNO) {
     case 1:
-      time = "09:40-10:25"
+      time = "10:00-10:45"
       break;
     case 2:
-      time = "10:30-11:15"
+      time = "11:00-11:45"
       break;
     case 3:
-      time = "11:20-12:05"
+      time = "12:00-12:45"
       break;
     case 4:
-      time = "12:10-12:55"
+      time = "02:00-02:45"
       break;
     case 5:
-      time = "02:00-2:45"
+      time = "03:00-3:45"
       break;
     default:
       return ""
@@ -187,19 +187,19 @@ const getStartTimeFromTimingNo = (timingNo) => {
   let startTime = ''
   switch (timingNo) {
     case 1:
-      startTime = '09:40:00'
+      startTime = '10:00:00'
       break;
     case 2:
-      startTime = "10:30:00"
+      startTime = "11:00:00"
       break;
     case 3:
-      startTime = "11:20:00"
+      startTime = "12:00:00"
       break;
     case 4:
-      startTime = "12:10:00"
+      startTime = "14:00:00"
       break;
     case 5:
-      startTime = "14:00:00"
+      startTime = "15:00:00"
       break;
     default:
       break;
@@ -210,19 +210,19 @@ const getEndTimeFromTimingNo = (timingNo) => {
   let endTime = ''
   switch (timingNo) {
     case 1:
-      endTime = '10:25:00'
+      endTime = '10:45:00'
       break;
     case 2:
-      endTime = '11:15:00'
+      endTime = '11:45:00'
       break;
     case 3:
-      endTime = '12:05:00'
+      endTime = '12:45:00'
       break;
     case 4:
-      endTime = '12:55:00'
+      endTime = '14:45:00'
       break;
     case 5:
-      endTime = '14:45:00'
+      endTime = '15:45:00'
       break;
     default:
       break;
@@ -293,7 +293,7 @@ router.post("/", async (req, res, next) => {
         waitingNo: newWaitingNumber
       }
       // await sendEmail(req, res, req.body.email, 'Studio Booking in Waiting Queue Successfull', waitingDoneTemplateId, dynamicTemplateDataForWaiting)
-      await sendTemplatedEmailSES(req.body.email,'studio-booking-waiting-idol',dynamicTemplateData)
+      await sendTemplatedEmailSES(req.body.email, 'studio-booking-waiting-idol', dynamicTemplateData)
       return res.status(201).json({ msg: `reserve booking has been made in studio ${Math.trunc(randomSlotNoWaiting / 10)} and slot ${randomSlotNoWaiting % 10}`, waitingNo: newWaitingNumber })
     }
     const slotNos = availableSlots.map(slot => slot.slotNo)
@@ -322,7 +322,7 @@ router.post("/", async (req, res, next) => {
       slotNo: Math.trunc(randomSlotNo / 10),
     }
     // await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
-    await sendTemplatedEmailSES(req.body.email,'studio-booking-confirmed-idol', dynamicTemplateData)
+    await sendTemplatedEmailSES(req.body.email, 'studio-booking-confirmed-idol', dynamicTemplateData)
     const user = await User.findOne({ email: req.body.email })
     const refreshToken = user.refreshTokenGoogle
     const description = `You have a booking at Studio Number ${Math.trunc(randomSlotNo / 10)} on date: ${localDateStringToDDMMYYYY(req.body.slotBookingData.date)}, time: ${getTimingNoString(req.body.timingNo)} for the program: ${req.body.slotBookingData.program}. Please report 10 minutes before the slot time`
@@ -487,8 +487,8 @@ router.post("/cancelled/history", async (req, res) => {
         }
       }, {
         '$sort': {
-          'queueData.slotBookingsData.date': 1,
-          'queueData.slotBookingsData.bookedAt': 1
+          'deletedData.slotBookingsData.date': 1,
+          'deletedData.slotBookingsData.bookedAt': 1
         }
       }, {
         $project: {
@@ -502,6 +502,211 @@ router.post("/cancelled/history", async (req, res) => {
       }
     ])
     res.status(201).json({ count: cancelledBookings.length, bookings: cancelledBookings })
+  } catch (error) {
+    res.status(500).json({ msg: error.message })
+  }
+})
+
+router.get("/cancelled/history/admin", async (req, res) => {
+  // pagination and limit
+  const page = Number(req.query.page) || 1
+  const limit = Number(req.query.limit) || 10  //by default 10 is the limit of objects to fetch
+  const skip = (page - 1) * limit       // if limit is 10 and page is 2 then, skip will be 10, so it will show the objects after skipping 10 objects from the results
+
+  const sort = req.query.sort
+  let sortQuery = { "deletedData.slotBookingsData.date": 1 }
+  if (sort) {
+    switch (sort) {
+      case "deletedAt":
+        if (req.query.order) {
+          if (req.query.order == 'Asc') {
+            sortQuery = { "deletedData.slotBookingsData.deletedAt": 1 }
+          } else if (req.query.order == 'Desc') {
+            sortQuery = { "deletedData.slotBookingsData.deletedAt": -1 }
+          }
+        } else {
+          sortQuery = { "deletedData.slotBookingsData.bookedAt": 1 }
+        }
+        break;
+      case "studioNo":
+        if (req.query.order) {
+          if (req.query.order == 'Asc') {
+            sortQuery = { "studioNo": 1 }
+          } else if (req.query.order == 'Desc') {
+            sortQuery = { "studioNo": -1 }
+          }
+        } else {
+          sortQuery = { "studioNo": 1 }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+
+
+
+  const studio = req.query.studio
+  let studioQuery = {}
+  if (studio) {
+    switch (studio) {
+      case 'all':
+        studioQuery = {}
+        break;
+      default:
+        studioQuery = { 'studioNo': Number(studio) }
+        break;
+    }
+  }
+
+  const { program, email } = req.query
+  let searchQuery = {}
+  if (program) {
+    searchQuery = { 'deletedData.slotBookingsData.program': { $regex: program, $options: 'i' } }
+  }
+  if (email) {
+    searchQuery = { 'deletedData.slotBookingsData.userEmail': { $regex: email, $options: 'i' } }
+  }
+
+  try {
+
+    if (req.query.typeOfRequest === 'downloadCsv') {
+
+      let bookingsJi = await Slot.aggregate([
+        {
+          '$unwind': {
+            'path': '$deletedData.slotBookingsData'
+          }
+        },
+        {
+          $project: {
+            bookings: '$deletedData.slotBookingsData',slotNo: 1, studioNo: 1, type: 1, timingNo: 1, _id: 0, user_doc: 1
+          }
+        }, {
+          '$sort': sortQuery
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'bookings.userEmail',
+            foreignField: 'email',
+            as: 'user_doc',
+            pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 } }]
+          }
+        },
+        {
+          $unwind: {
+            path: '$user_doc'
+          }
+        }
+      ])
+      const workbook = new excelJs.Workbook()
+      const worksheet = workbook.addWorksheet("Studio Slot Cancelled Data")
+
+      worksheet.columns = [
+        { header: "S.no", key: 's_no', width: 10 },
+        { header: "Studio No", key: 'studioNo', width: 15 },
+        { header: "Slot No", key: 'slotNo', width: 15 },
+        { header: "Timing", key: "timing", width: 25 },
+        { header: 'Date', key: "date", width: 30 },
+        { header: 'Program', key: "program", width: 50 },
+        { header: 'Full Name', key: "fullName", width: 40 },
+        { header: 'Role', key: 'role', width: 25 },
+        { header: 'Email', key: 'email', width: 50 },
+        { header: 'Reason for Cancelled', key: 'reasonForCancel', width: 70 }
+      ]
+
+      let counter = 1;
+      bookingsJi.forEach((item) => {
+        let rowItem = {
+          s_no: counter,
+          studioNo: item.studioNo,
+          slotNo: item.slotNo,
+          timing: getTimingNoString(item?.timingNo),
+          date: localDateStringToDDMMYYYY(item.bookings.date),
+          program: item.bookings?.program,
+          fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
+          role: item?.user_doc?.role,
+          email: item?.user_doc?.email,
+          reasonForCancel: item.bookings?.reasonForCancel
+        }
+        worksheet.addRow(rowItem)
+        counter++
+      })
+
+      worksheet.getRow(1).eachCell((cell) => {
+        cell.font = { bold: true }
+      })
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader("Content-Disposition", "attachment; filename=" + "StudioSlotReport.xlsx");
+      return workbook.xlsx.write(res)
+        .then(function (data) {
+          res.end();
+        });
+    }
+
+    const cancelledBookings = await Slot.aggregate([
+      {
+        '$unwind': {
+          'path': '$deletedData.slotBookingsData'
+        }
+      },{
+        '$match': {
+          ...studioQuery,
+          ...searchQuery
+        }
+      }
+      , {
+        $project: {
+          _id: 0,
+          bookings: '$deletedData.slotBookingsData',
+          slotNo: 1,
+          studioNo: 1,
+          type: 1,
+          timingNo: 1,
+          user_doc: 1
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'bookings.userEmail',
+          foreignField: 'email',
+          as: 'user_doc',
+          pipeline: [{ "$project": { "name": 1, "lastname": 1, "email": 1, "role": 1 } }]
+        }
+      },
+      {
+        $unwind: {
+          path: '$user_doc'
+        }
+      },
+      {
+        $facet: {
+          results: [
+            {
+              $skip: skip
+            },
+            {
+              $limit: limit
+            }
+          ],
+          count: [
+            {
+              $group: {
+                _id: null,
+                count: {
+                  $sum: 1
+                }
+              }
+            }
+          ]
+        }
+      }
+    ])
+    res.status(200).json({ totalPages: Math.ceil(cancelledBookings[0].count[0].count / limit), count: cancelledBookings[0].results.length, bookings: cancelledBookings[0].results })
   } catch (error) {
     res.status(500).json({ msg: error.message })
   }
@@ -576,7 +781,7 @@ router.post("/admin", async (req, res, next) => {
       slotNo: Math.trunc(updatedSlot.slotNo / 10),
     }
     // await sendEmail(req, res, req.body.email, subject, bookingDoneTemplateId, dynamicTemplateData)
-    await sendTemplatedEmailSES(req.body.email,'studio-booking-confirmed-idol',dynamicTemplateData)
+    await sendTemplatedEmailSES(req.body.email, 'studio-booking-confirmed-idol', dynamicTemplateData)
     res.status(200).json({ msg: `booking has been made in studio ${Math.trunc(req.body.slotNo / 10)} and slot ${req.body.slotNo % 10}`, studio: Math.trunc(req.body.slotNo / 10), slot: (req.body.slotNo % 10), type: updatedSlot.type })
   } catch (err) {
     res.status(302).json("This slot already booked or there is some error in backend");
@@ -605,16 +810,16 @@ router.post("/status", async (req, res) => {
         }
       }, {
         '$lookup': {
-          'from': 'users', 
-          'localField': 'slotBookingsData.userEmail', 
-          'foreignField': 'email', 
-          'as': 'user_doc', 
+          'from': 'users',
+          'localField': 'slotBookingsData.userEmail',
+          'foreignField': 'email',
+          'as': 'user_doc',
           'pipeline': [
             {
               '$project': {
-                'name': 1, 
-                'lastname': 1, 
-                'email': 1, 
+                'name': 1,
+                'lastname': 1,
+                'email': 1,
                 'role': 1
               }
             }
@@ -622,7 +827,7 @@ router.post("/status", async (req, res) => {
         }
       }
     ])
-    res.status(200).json({slotNos,slotData})
+    res.status(200).json({ slotNos, slotData })
   } catch (err) {
     console.log(err)
   }
@@ -707,7 +912,7 @@ router.post("/delete", async (req, res) => {
 
     //pushing deleted booking to deltedField
     const obj = slotData[0].slotBookingsData[0]._doc
-    const dataToPush = {reasonForCancel: req.body.reasonForCancel, ...obj}
+    const dataToPush = { reasonForCancel: req.body.reasonForCancel, ...obj }
     console.log(dataToPush)
     await Slot.findOneAndUpdate({
       studioNo: req.body.studioNo, timingNo: req.body.timingNo
@@ -798,7 +1003,7 @@ router.post("/delete", async (req, res) => {
     }
     //sending deleting mail
     // await sendEmail(req, res, slotData[0].slotBookingsData[0].userEmail, `Studio Booking Cancelled`, deleteDoneTemplateId, dynamicTemplateData)
-    await sendTemplatedEmailSES(slotData[0].slotBookingsData[0].userEmail,'studio-booking-deleted-idol',dynamicTemplateData)
+    await sendTemplatedEmailSES(slotData[0].slotBookingsData[0].userEmail, 'studio-booking-deleted-idol', dynamicTemplateData)
     res.json({ msg: "done" })
   } catch (error) {
     console.log(error)
@@ -1188,7 +1393,7 @@ router.post("/end", async (req, res) => {
 })
 
 //quick stats homepage for user
-router.post("/quick-stats", async(req,res)=>{
+router.post("/quick-stats", async (req, res) => {
   let typeOfHistoryQuery = {}
   if (req.body.bookingsType == "upcoming") {
     typeOfHistoryQuery = { $gt: new Date(req.body.dateString) }

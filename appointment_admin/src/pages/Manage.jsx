@@ -337,26 +337,26 @@ const Manage = () => {
                             }
                         </Spin>
                         <Modal
-                            title="Reason For Defaulting"
+                            title="Not Completed"
                             open={open}
                             onOk={handleOk}
                             confirmLoading={confirmLoading}
                             onCancel={handleCancel}
                             okButtonProps={{disabled: reasonForDefault===""?true:false}}
                         >
-                            <p>Please specify the reason why you are marking this person as defaulter for this booking</p>
-                            <InputJi type='text' placeholder='reason for defaulting' onChange={(e) => setReasonForDefault(e.target.value)} value={reasonForDefault} autoFocuc={true} />
+                            <p>Please specify the reason</p>
+                            <InputJi type='text' placeholder='Remarks:' onChange={(e) => setReasonForDefault(e.target.value)} value={reasonForDefault} autoFocuc={true} />
                         </Modal>
                         <Modal
-                            title="Reason For Completed Succesfully"
+                            title="Completed Succesfully"
                             open={openGreen}
                             onOk={handleOkGreen}
                             confirmLoading={confirmLoading}
                             onCancel={handleCancelGreen}
                             okButtonProps={{disabled: reasonForCompleted===""?true:false}}
                         >
-                            <p>Please specify the reason why you are marking this person as successfully completed</p>
-                            <InputJi type='text' placeholder='reason for completing successfully' onChange={(e) => setReasonForCompleted(e.target.value)} value={reasonForCompleted} autoFocuc={true} />
+                            <p>Please specify the reason</p>
+                            <InputJi type='text' placeholder='Remarks:' onChange={(e) => setReasonForCompleted(e.target.value)} value={reasonForCompleted} autoFocuc={true} />
                         </Modal>
                     </TableContainer>
                 </ContentContainer>

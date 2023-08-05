@@ -134,7 +134,7 @@ const Register = () => {
         <Link to="/login" style={{ textDecoration: "none" }} >
           <Text>Login</Text>
         </Link>
-        {err && <Error>something went wrong...</Error>}
+        {err && <Error>something went wrong, or you are already registered</Error>}
       </Wrapper>
     </Container>
   )

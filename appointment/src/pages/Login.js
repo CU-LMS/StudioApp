@@ -118,7 +118,7 @@ const Login = () => {
                     
                 </Form> */}
                 <Button onClick={() => googleLogintwo()} disabled={loading}><GoogleOutlined style={{marginRight: "5px", fontSize:"20px"}}/>Sign in with Google</Button>
-                {error && <Error>something went wrong...</Error>}
+                {error && <Error>please create an account if not already done or wait for approval from admin</Error>}
                 <Link to="/register" style={{ textDecoration: "none" }} >
                     <Text>Create an Account</Text>
                 </Link>

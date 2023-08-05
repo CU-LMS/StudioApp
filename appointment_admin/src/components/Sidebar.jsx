@@ -73,13 +73,18 @@ const Sidebar = () => {
                         Configure
                     </Link>
                 </ListItem>
-                {
-                    user?.role === 'manager' ? <ListItem selected={location.pathname == '/manage'} value='/configure' special={true}>
+                
+                     <ListItem selected={location.pathname == '/manage'} value='/configure' special={true}>
                         <Link to="/manage" style={{ textDecoration: "none", color: "inherit" }}>
                             Manage
                         </Link>
-                    </ListItem> : null
-                }
+                    </ListItem>
+                
+                    <ListItem selected={location.pathname == '/cancelled'} value='/cancelled'>
+                        <Link to="/cancelled" style={{ textDecoration: "none", color: "inherit" }}>
+                            Cancelled
+                        </Link>
+                    </ListItem>
             </Menu>
 
         </Container>

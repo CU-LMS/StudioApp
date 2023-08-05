@@ -2,19 +2,19 @@ export function getTimingStringFromTimingNoOfSlot(timingNo){
     let time = ""
     switch (timingNo) {
       case 1:
-        time = "09:40-10:25"
+        time = "10:00-10:45"
         break;
       case 2:
-        time = "10:30-11:15"
+        time = "11:00-11:45"
         break;
       case 3:
-        time = "11:20-12:05"
+        time = "12:00-12:45"
         break;
       case 4:
-        time = "12:10-12:55"
+        time = "02:00-02:45"
         break;
       case 5:
-        time = "02:00-2:45"
+        time = "03:00-3:45"
         break;
       default:
         return ""
