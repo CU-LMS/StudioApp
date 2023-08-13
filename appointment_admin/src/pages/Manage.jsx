@@ -276,16 +276,18 @@ const Manage = () => {
                         <Spin indicator={antIcon} spinning={loading} size='large'>
                             {bookings && bookings.length > 0 && !loading ?
                                 <TableAndPage>
-                                    <TableJi>
+                                    <TableJi className='table-responsive'>
                                         <table className='table text-center table-hover table-bordered'>
                                             <tbody>
-                                                <tr>
-                                                    <th>Booking Id</th>
+                                                <tr className='table-dark'>
+                                                    <th>S.No</th>
+                                                    <th>Timing</th>
                                                     <th>Studio No</th>
                                                     <th>Slot No</th>
-                                                    <th>Timing</th>
                                                     <th>Date</th>
                                                     <th>Program</th>
+                                                    <th>Degree</th>
+                                                    <th>Sem</th>
                                                     <th>Full Name</th>
                                                     <th>Role</th>
                                                     <th>Email</th>
@@ -293,16 +295,20 @@ const Manage = () => {
                                                 </tr>
                                                 {
                                                     bookings.length > 0 &&
-                                                    bookings?.map(booking => {
+                                                    bookings?.map((booking,index) => {
                                                         return (
                                                             <Tooltip title={booking?.slotBookingsData?.defaulted === true ? `${booking?.slotBookingsData?.reasonForDefault}` : (booking?.slotBookingsData?.completed === true ? `${booking?.slotBookingsData?.reasonForCompleted}` : null)} key={booking?.slotBookingsData?._id}>
                                                                 <tr key={booking?.bookings?._id} className={booking?.slotBookingsData?.defaulted === true ? 'table-danger' : (booking?.slotBookingsData?.completed === true ? 'table-success' : null)}>
-                                                                    <td>{booking.slotBookingsData._id}</td>
+                                                                    <td>{index+1 + (10 * (currentPage-1))}</td>
+                                                                    <td>{getTimingStringFromTimingNoOfSlot(booking?.timingNo)}</td>
                                                                     <td>{booking.studioNo}</td>
                                                                     <td>{Math.trunc(booking.slotNo % 10)}</td>
-                                                                    <td>{getTimingStringFromTimingNoOfSlot(booking?.timingNo)}</td>
                                                                     <td>{localDateStringToDDMMYYYY(booking.slotBookingsData.date)}</td>
-                                                                    <td>{booking.slotBookingsData.program}</td>
+                                                                    <Tooltip title={booking?.slotBookingsData?.program} color='grey' key={booking?.bookings?._id} placement="left">
+                                                                    <td><span className='d-inline-block text-truncate' style={{width: '200px'}}>{booking.slotBookingsData?.program}</span></td>
+                                                                    </Tooltip>
+                                                                    <td>{booking?.slotBookingsData?.degree}</td>
+                                                                    <td>{booking?.slotBookingsData?.semester}</td>
                                                                     <td>{`${booking.user_doc.name} ${booking.user_doc.lastname}`}</td>
                                                                     <td>{booking.user_doc.role}</td>
                                                                     <td>{booking.user_doc.email}</td>

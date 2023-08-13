@@ -169,11 +169,11 @@ const Programs = () => {
                         Create New Program
                     </Button>
                     <Spin indicator={antIcon} spinning={loadingContent} size='large'>
-                        {programs.length > 0 ? <TableContainer> <table className='table text-center table-striped table-hover table-bordered'>
+                        {programs.length > 0 ? <TableContainer> <div className='table-responsive'><table className='table text-center table-striped table-hover table-bordered'>
                             <tbody>
                                 <tr className='table-dark'>
                                     <th>
-                                        ID
+                                        S.No
                                     </th>
                                     <th>Semester</th>
                                     <th>Program Name</th>
@@ -181,10 +181,10 @@ const Programs = () => {
                                     <th>Actions</th>
                                 </tr>
                                 {
-                                    programs?.map(program => {
+                                    programs?.map((program,index) => {
                                         return (
                                             <tr key={program._id}>
-                                                <td>{program._id}</td>
+                                                <td>{index+1 + (10 * (currentPage-1))}</td>
                                                 <td>{program.semester}</td>
                                                 <td>{program.programName}</td>
                                                 <td>{program.courseName}</td>
@@ -198,6 +198,7 @@ const Programs = () => {
                             </tbody>
 
                         </table>
+                        </div>
                         <Pagination>
               <ResponsivePagination
                 current={currentPage}

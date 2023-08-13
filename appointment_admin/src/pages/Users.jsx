@@ -26,7 +26,7 @@ const ButtonLocal = styled.button`
   padding: 2px;
 `
 const Pagination = styled.div`
-  
+  margin-top: 20px;
 `
 const OuterDiv = styled.div`
   
@@ -75,8 +75,9 @@ const Users = () => {
 
     }
     async function getUsers() {
+      setUsers([])
       setLoading(true)
-      const res = await userRequest.get("/user")
+      const res = await userRequest.get(`/user?page=${currentPage}&limit=10`)
       setLoading(false)
       return res
     }
@@ -99,8 +100,9 @@ const Users = () => {
       console.log(error)
     }
     async function getUsers() {
+      setUsers([])
       setLoading(true)
-      const res = await userRequest.get("/user")
+      const res = await userRequest.get(`/user?page=${currentPage}&limit=10`)
       setLoading(false)
       return res
     }
@@ -122,11 +124,19 @@ const Users = () => {
       await userRequest.post(`user/role/${selectedUser._id}`, {
         role: newSelectedRole
       })
-      setCurrentPage(1)
       setLoadingModal(false)
+      async function getUsers() {
+        setUsers([])
+        setLoading(true)
+        const res = await userRequest.get(`/user?page=${currentPage}&limit=10`)
+        setLoading(false)
+        return res
+      }
+      getUsers().then((res) => setUsers(res.data.users))
       success()
     }
     setOpen(false)
+
   };
   const handleCancel = () => {
     setOpen(false);
@@ -175,34 +185,30 @@ const Users = () => {
       <User>
         <Navbar />
         <Spin indicator={antIcon} spinning={loading} size='large'>
-          {users.length > 0 ? <><table className='table text-center table-striped table-hover table-bordered'>
+          {users.length > 0 ? <><div style={{maxHeight: '65vh'}} className='table-responsive d-flex w-75 m-auto mt-4'><table className='table text-center table-striped table-hover table-bordered'>
             <tbody>
-              <tr>
-                <th>
-                  ID
-                </th>
+              <tr className='table-dark'>
+                <td>S.No</td>
                 <th>First Name</th>
                 <th>Last Name</th>
-                <th>Username</th>
                 <th>Email</th>
                 <th>Role</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
               {
-                users?.map(user => {
+                users?.map((user,index) => {
                   return (
                     <tr key={user._id}>
-                      <td>{user._id}</td>
-                      <td>{user.name}</td>
-                      <td>{user.lastname}</td>
-                      <td>{user.username}</td>
-                      <td>{user.email}</td>
-                      <td>{user.role}</td>
-                      <td>{user.status}</td>
+                      <td>{index+1 + (10 * (currentPage-1))}</td>
+                      <td>{user?.name}</td>
+                      <td>{user?.lastname}</td>
+                      <td>{user?.email}</td>
+                      <td>{user?.role}</td>
+                      <td>{user?.status}</td>
                       <td>
-                        {user.role == "admin" ? null : <ButtonLocal onClick={() => handleDelete(user._id)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></ButtonLocal>}
-                        {user.role == "admin" ? null : <ButtonLocal onClick={() => handleStatus(user._id, user.status)}>{user.status == "approved" ? <CloseCircleOutlined style={{ color: "red", fontSize: "18px" }} /> : <CheckCircleOutlined style={{ color: "green", fontSize: "18px" }} />}</ButtonLocal>}
+                        {user?.role == "admin" ? null : <ButtonLocal onClick={() => handleDelete(user._id)}><DeleteOutlined style={{ color: "red", fontSize: "18px", margin: "2px" }} /></ButtonLocal>}
+                        {user?.role == "admin" ? null : <ButtonLocal onClick={() => handleStatus(user._id, user.status)}>{user.status == "approved" ? <CloseCircleOutlined style={{ color: "red", fontSize: "18px" }} /> : <CheckCircleOutlined style={{ color: "green", fontSize: "18px" }} />}</ButtonLocal>}
                         {<ButtonLocal onClick={() => showModal(user)}>{<UserSwitchOutlined style={{ fontSize: '18px', margin: '2px' }} />}</ButtonLocal>}
                       </td>
                     </tr>
@@ -210,8 +216,8 @@ const Users = () => {
                 })
               }
             </tbody>
-
           </table>
+          </div>
             <Pagination>
               <ResponsivePagination
                 current={currentPage}

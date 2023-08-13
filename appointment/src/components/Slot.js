@@ -140,6 +140,8 @@ const Slot = ({ setDatePickerOpen, slotType }) => {
                 slotBookingData: {
                     user: user._id,
                     program: program,
+                    semester: semester,
+                    degree: programName,
                     date: dateString,
                     userEmail: user.email
                 }

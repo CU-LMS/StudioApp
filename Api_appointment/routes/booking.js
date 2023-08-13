@@ -325,7 +325,7 @@ router.post("/", async (req, res, next) => {
     await sendTemplatedEmailSES(req.body.email, 'studio-booking-confirmed-idol', dynamicTemplateData)
     const user = await User.findOne({ email: req.body.email })
     const refreshToken = user.refreshTokenGoogle
-    const description = `You have a booking at Studio Number ${Math.trunc(randomSlotNo / 10)} on date: ${localDateStringToDDMMYYYY(req.body.slotBookingData.date)}, time: ${getTimingNoString(req.body.timingNo)} for the program: ${req.body.slotBookingData.program}. Please report 10 minutes before the slot time`
+    const description = `You have a booking at Studio Number ${Math.trunc(randomSlotNo / 10)} on date: ${localDateStringToDDMMYYYY(req.body.slotBookingData.date)}, time: ${getTimingNoString(req.body.timingNo)} for the program: ${req.body.slotBookingData.program} and degree: ${req.body.slotBookingData.degree}. Please report 10 minutes before the slot time`
     await createEvent(refreshToken, req.body.slotBookingData.date, getStartTimeFromTimingNo(req.body.timingNo), getEndTimeFromTimingNo(req.body.timingNo), req, description, randomSlotNo, Math.trunc(randomSlotNo / 10), req.body.type)
     res.status(200).json(`booking has been made in studio ${Math.trunc(randomSlotNo / 10)} and slot ${randomSlotNo % 10}`)
   } catch (err) {
@@ -611,6 +611,8 @@ router.get("/cancelled/history/admin", async (req, res) => {
         { header: "Timing", key: "timing", width: 25 },
         { header: 'Date', key: "date", width: 30 },
         { header: 'Program', key: "program", width: 50 },
+        { header: 'Semester', key: "semester", width: 10 },
+        { header: 'Degree', key: "degree", width: 30 },
         { header: 'Full Name', key: "fullName", width: 40 },
         { header: 'Role', key: 'role', width: 25 },
         { header: 'Email', key: 'email', width: 50 },
@@ -626,6 +628,8 @@ router.get("/cancelled/history/admin", async (req, res) => {
           timing: getTimingNoString(item?.timingNo),
           date: localDateStringToDDMMYYYY(item.bookings.date),
           program: item.bookings?.program,
+          semester: item.bookings?.semester,
+          degree: item.bookings?.degree,
           fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
           role: item?.user_doc?.role,
           email: item?.user_doc?.email,
@@ -1166,6 +1170,8 @@ router.post("/find", async (req, res) => {
         { header: "Timing", key: "timing", width: 25 },
         { header: 'Date', key: "date", width: 30 },
         { header: 'Program', key: "program", width: 50 },
+        { header: 'Semester', key: "semester", width: 10 },
+        { header: 'Degree', key: "degree", width: 30 },
         { header: 'Full Name', key: "fullName", width: 40 },
         { header: 'Role', key: 'role', width: 25 },
         { header: 'Email', key: 'email', width: 50 },
@@ -1184,6 +1190,8 @@ router.post("/find", async (req, res) => {
           timing: getTimingNoString(item?.timingNo),
           date: localDateStringToDDMMYYYY(item.slotBookingsData.date),
           program: item.slotBookingsData?.program,
+          semester: item.slotBookingsData?.semester,
+          degree: item.slotBookingsData?.degree,
           fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
           role: item?.user_doc?.role,
           email: item?.user_doc?.email,
@@ -1317,6 +1325,8 @@ router.get("/find", async (req, res) => {
       { header: "Timing", key: "timing", width: 25 },
       { header: 'Date', key: "date", width: 30 },
       { header: 'Program', key: "program", width: 50 },
+      { header: 'Semester', key: "semester", width: 10 },
+      { header: 'Degree', key: "degree", width: 30 },
       { header: 'Full Name', key: "fullName", width: 40 },
       { header: 'Role', key: 'role', width: 25 },
       { header: 'Email', key: 'email', width: 50 },
@@ -1335,6 +1345,8 @@ router.get("/find", async (req, res) => {
         timing: getTimingNoString(item?.timingNo),
         date: localDateStringToDDMMYYYY(item.slotBookingsData.date),
         program: item.slotBookingsData?.program,
+        semester: item.slotBookingsData?.semester,
+        degree: item.slotBookingsData?.degree,
         fullName: `${item?.user_doc?.name} ${item?.user_doc?.lastname}`,
         role: item?.user_doc?.role,
         email: item?.user_doc?.email,

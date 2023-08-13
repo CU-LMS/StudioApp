@@ -187,7 +187,7 @@ const Cancelled = () => {
     <Sidebar />
     <InnerContainer>
         <Navbar />
-        <ContentContainer>
+        <Spin indicator={antIcon} spinning={loading} size='large'><ContentContainer>
             <UpperContainer>
                 <RadioContainer>
                     <Radio.Group onChange={onChangeRadio} value={studioNo} size='large' style={{ backgroundColor: "#f1f1f1", padding: '10px', borderRadius: '10px', boxShadow: '0px 1px 9px -1px rgba(179,173,179,1)' }}>
@@ -204,18 +204,21 @@ const Cancelled = () => {
                 <ButtonJi onClick={handleSlotDataCSVDownload}>Download CSV</ButtonJi>
             </UpperContainer>
             <TableContainer>
-                <Spin indicator={antIcon} spinning={loading} size='large'>
+                
                     {bookings && bookings.length > 0 && !loading ?
                         <TableAndPage>
-                            <TableJi>
+                            <TableJi className='table-responsive'>
                                 <table className='table text-center table-hover table-bordered'>
                                     <tbody>
-                                        <tr>
+                                        <tr className='table-dark'>
+                                            <th>S.No</th>
+                                            <th>Timing</th>
                                             <th>Studio No</th>
                                             <th>Slot No</th>
-                                            <th>Timing</th>
                                             <th>Date</th>
                                             <th>Program</th>
+                                            <th>Degree</th>
+                                            <th>Sem</th>
                                             <th>Full Name</th>
                                             <th>Role</th>
                                             <th>Email</th>
@@ -223,19 +226,24 @@ const Cancelled = () => {
                                         </tr>
                                         {
                                             bookings.length > 0 &&
-                                            bookings?.map(booking => {
+                                            bookings?.map((booking,index) => {
                                                 return (                                              
                                                         <tr key={booking?.bookings?._id}>
-                                                            <td>{booking.studioNo}</td>
-                                                            <td>{Math.trunc(booking.slotNo % 10)}</td>
+                                                            <td>{index+1 + (10*(currentPage-1))}</td>
                                                             <td>{getTimingStringFromTimingNoOfSlot(booking?.timingNo)}</td>
-                                                            <td>{localDateStringToDDMMYYYY(booking.bookings.date)}</td>
-                                                            <td>{booking.bookings.program}</td>
-                                                            <td>{`${booking.user_doc.name} ${booking.user_doc.lastname}`}</td>
-                                                            <td>{booking.user_doc.role}</td>
-                                                            <td>{booking.user_doc.email}</td>
-                                                            <Tooltip title={booking?.bookings?.reasonForCancel} key={booking.bookings._id}>
-                                                            <td><span className='d-inline-block text-truncate' style={{maxWidth: '300px'}}>{booking.bookings.reasonForCancel}</span></td>
+                                                            <td>{booking?.studioNo}</td>
+                                                            <td>{Math.trunc(booking?.slotNo % 10)}</td>
+                                                            <td>{localDateStringToDDMMYYYY(booking?.bookings?.date)}</td>
+                                                            <Tooltip title={booking?.bookings?.program} key={booking?.bookings?._id} color='grey' placement="left">
+                                                                <td><span className='d-inline-block text-truncate' style={{width: '200px'}}>{booking?.bookings?.program}</span></td>
+                                                            </Tooltip>
+                                                            <td>{booking?.bookings?.degree}</td>
+                                                            <td>{booking?.bookings?.semester}</td>
+                                                            <td>{`${booking?.user_doc?.name} ${booking?.user_doc?.lastname}`}</td>
+                                                            <td>{booking?.user_doc?.role}</td>
+                                                            <td>{booking?.user_doc?.email}</td>
+                                                            <Tooltip title={booking?.bookings?.reasonForCancel} key={booking?.bookings?._id}>
+                                                            <td><span className='d-inline-block text-truncate' style={{width: '100px'}}>{booking?.bookings?.reasonForCancel}</span></td>
                                                             </Tooltip>
                                                         </tr>
                                                 )
@@ -262,9 +270,10 @@ const Cancelled = () => {
                                 subTitle="You are free, feel free to read some News"
                             />)
                     }
-                </Spin>
+                
             </TableContainer>
         </ContentContainer>
+        </Spin>
     </InnerContainer>
 </Container>
   )
