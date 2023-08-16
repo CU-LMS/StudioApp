@@ -610,9 +610,9 @@ router.get("/cancelled/history/admin", async (req, res) => {
         { header: "Slot No", key: 'slotNo', width: 15 },
         { header: "Timing", key: "timing", width: 25 },
         { header: 'Date', key: "date", width: 30 },
-        { header: 'Program', key: "program", width: 50 },
+        { header: 'Course', key: "program", width: 50 },
         { header: 'Semester', key: "semester", width: 10 },
-        { header: 'Degree', key: "degree", width: 30 },
+        { header: 'Program', key: "degree", width: 30 },
         { header: 'Full Name', key: "fullName", width: 40 },
         { header: 'Role', key: 'role', width: 25 },
         { header: 'Email', key: 'email', width: 50 },
@@ -1112,13 +1112,16 @@ router.post("/find", async (req, res) => {
     }
   }
 
-  const { program, email } = req.query
+  const { program, email, name } = req.query
   let searchQuery = {}
   if (program) {
     searchQuery = { 'slotBookingsData.program': { $regex: program, $options: 'i' } }
   }
   if (email) {
     searchQuery = { 'slotBookingsData.userEmail': { $regex: email, $options: 'i' } }
+  }
+  if(name){
+    searchQuery = {'slotBookingsData.userEmail': {$regex: name, $options: 'i'}}
   }
 
 
@@ -1169,9 +1172,9 @@ router.post("/find", async (req, res) => {
         { header: "Slot No", key: 'slotNo', width: 15 },
         { header: "Timing", key: "timing", width: 25 },
         { header: 'Date', key: "date", width: 30 },
-        { header: 'Program', key: "program", width: 50 },
+        { header: 'Course', key: "program", width: 50 },
         { header: 'Semester', key: "semester", width: 10 },
-        { header: 'Degree', key: "degree", width: 30 },
+        { header: 'Program', key: "degree", width: 30 },
         { header: 'Full Name', key: "fullName", width: 40 },
         { header: 'Role', key: 'role', width: 25 },
         { header: 'Email', key: 'email', width: 50 },
@@ -1324,9 +1327,9 @@ router.get("/find", async (req, res) => {
       { header: "Slot No", key: 'slotNo', width: 15 },
       { header: "Timing", key: "timing", width: 25 },
       { header: 'Date', key: "date", width: 30 },
-      { header: 'Program', key: "program", width: 50 },
+      { header: 'Course', key: "program", width: 50 },
       { header: 'Semester', key: "semester", width: 10 },
-      { header: 'Degree', key: "degree", width: 30 },
+      { header: 'Program', key: "degree", width: 30 },
       { header: 'Full Name', key: "fullName", width: 40 },
       { header: 'Role', key: 'role', width: 25 },
       { header: 'Email', key: 'email', width: 50 },

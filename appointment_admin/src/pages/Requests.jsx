@@ -181,8 +181,8 @@ const Requests = () => {
                         <th>Studio No</th>
                         <th>Slot No</th>
                         <th>Date</th>
+                        <th>Course</th>
                         <th>Program</th>
-                        <th>Degree</th>
                         <th>Sem</th>
                         <th>Full Name</th>
                         <th>Role</th>

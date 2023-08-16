@@ -197,7 +197,7 @@ const Home = () => {
                         <p className='m-0 p-1'>Do provide feedback</p>
                     </div>
                     <div>
-                        <p className='h4 m-0 py-1'><strong>Dont'ts</strong></p>
+                        <p className='h4 m-0 py-1'><strong>Dont's</strong></p>
                         <p className='m-0 p-1'>Don't Overbook</p>
                         <p className='m-0 p-1'>Don't forget to cancel</p>
                         <p className='m-0 p-1'>Don't assume availability</p>
