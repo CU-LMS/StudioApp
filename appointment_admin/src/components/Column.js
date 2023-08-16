@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 const ColumnContainer = styled.div`
     /* width: 10vw;
     height: 60vh; */
-    width: 10vw;
+    width: 10.5vw;
     height: 100%;
     margin: 8px;
     /* background-color: yellow; */

@@ -19,7 +19,7 @@ const OuterContainer = styled.div`
     align-items: center;
 `
 const Container = styled.div`
-    width: 40vw;
+    width: 42vw;
     margin: 20px;
     padding: 20px;
     /* background-color: green; */

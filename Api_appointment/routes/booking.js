@@ -624,7 +624,7 @@ router.get("/cancelled/history/admin", async (req, res) => {
         let rowItem = {
           s_no: counter,
           studioNo: item.studioNo,
-          slotNo: item.slotNo,
+          slotNo: item.slotNo%10,
           timing: getTimingNoString(item?.timingNo),
           date: localDateStringToDDMMYYYY(item.bookings.date),
           program: item.bookings?.program,
@@ -1186,7 +1186,7 @@ router.post("/find", async (req, res) => {
         let rowItem = {
           s_no: counter,
           studioNo: item.studioNo,
-          slotNo: item.slotNo,
+          slotNo: item.slotNo%10,
           timing: getTimingNoString(item?.timingNo),
           date: localDateStringToDDMMYYYY(item.slotBookingsData.date),
           program: item.slotBookingsData?.program,

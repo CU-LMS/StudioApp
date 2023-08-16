@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { slotStatuses } from '../context/apiCalls';
 import { useContext } from 'react';
 import { SlotStatusContext } from '../context/SlotStatusContext';
+import { Button, Modal } from 'antd';
 
 const ParentContainer = styled.div`
     display: flex;
@@ -57,7 +58,13 @@ const ColorIndicator = styled.div`
 `
 const Home = () => {
     const { dispatch } = useContext(SlotStatusContext)
-    const [datePickerOpen, setDatePickerOpen] = useState(true)
+    const [datePickerOpen, setDatePickerOpen] = useState(false)
+    const [isModalOpen, setIsModalOpen] = useState(true);
+    
+    const handleCancelModal = () => {
+        setDatePickerOpen(true)
+        setIsModalOpen(false);
+    };
     useEffect(() => {
         let yourDate = new Date()
         const offset = yourDate.getTimezoneOffset()
@@ -85,6 +92,32 @@ const Home = () => {
                     <Slot setDatePickerOpen={setDatePickerOpen} />
                 </Container>
             </OuterContainer>
+            <Modal open={isModalOpen} onCancel={handleCancelModal} centered width={360} footer={[ <Button key="back" onClick={handleCancelModal} type='primary'>Ok</Button>]}>
+                <div>
+                    <div className='mb-2 mt-1'>
+                        <p className='h4 m-0 py-1'><strong>Do's</strong></p>
+                        <p className='m-0 p-1'>For Best experience only use in desktop/laptop</p>
+                        <p className='m-0 p-1'>Do familiarize yourself</p>
+                        <p className='m-0 p-1'>Do update availability</p>
+                        <p className='m-0 p-1'>Do plan ahead</p>
+                        <p className='m-0 p-1'>Do provide details</p>
+                        <p className='m-0 p-1'>Do communicate changes</p>
+                        <p className='m-0 p-1'>Do respect others booking</p>
+                        <p className='m-0 p-1'>Do collaborate</p>
+                        <p className='m-0 p-1'>Do provide feedback</p>
+                    </div>
+                    <div>
+                        <p className='h4 m-0 py-1'><strong>Dont'ts</strong></p>
+                        <p className='m-0 p-1'>Don't Overbook</p>
+                        <p className='m-0 p-1'>Don't forget to cancel</p>
+                        <p className='m-0 p-1'>Don't assume availability</p>
+                        <p className='m-0 p-1'>Don't hog the space</p>
+                        <p className='m-0 p-1'>Don't ignore notifications</p>
+                        <p className='m-0 p-1'>Don't neglect communications</p>
+                        <p className='m-0 p-1'>Don't delay updates</p>
+                    </div>
+                </div>
+            </Modal>
         </ParentContainer>
     )
 }

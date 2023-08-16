@@ -6,8 +6,8 @@ import { Tooltip } from 'antd'
 import { useEffect } from 'react'
 import { CgUnavailable } from 'react-icons/cg'
 const BoxContainer = styled.div`
-    max-width: 100px;
-    height: 70px;
+    max-width: 110px;
+    height: 75px;
     margin: 10px;
     padding: 10px;
     display:flex;
@@ -28,7 +28,11 @@ const BoxContainer = styled.div`
 `
 const Text = styled.p`
     margin: 0;
-    font-size: 10px;
+    font-size: 13px;
+    white-space: nowrap; 
+    overflow: hidden;
+  text-overflow: ellipsis; 
+  max-width: 80px;
 `
 
 const Hr = styled.hr`
@@ -79,7 +83,7 @@ const Box = ({ slot, studioUnavailable }) => {
         <Tooltip title={bookedSlots.includes(slot.id) ? ((filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.completed === true)? "completed": (filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.defaulted===true?"defaulted": "no action taken")) : (disableSlots.includes(slot.id) ? "unselect previous" : null)} color={bookedSlots.includes(slot.id) ? ((filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.completed === true)? "#5af542": (filteredBookingForBox?.length>0 && filteredBookingForBox[0]?.slotBookingsData?.defaulted===true?"#fa4b4b": "grey")) : (disableSlots.includes(slot.id) ? "red" : null)}>
             <BoxContainer active={active} onClick={() => handleClick(slot.id)} booked={bookedSlots.includes(slot.id)} disable={disableSlots.includes(slot.id)} bulkActive={bulkIdsActive.includes(slot.id)} unavailable={studioUnavailable} completed={filteredBookingForBox?.length>0?filteredBookingForBox[0].slotBookingsData.completed:false} defaulted={filteredBookingForBox?.length>0?filteredBookingForBox[0].slotBookingsData.defaulted:false}>
                 {studioUnavailable === true ? <CgUnavailable size={50} color='#aaaaaa' /> : <Text>{slot.time}</Text>}
-                {bookedSlots.includes(slot.id) === true? <Text>{`${name?.name} ${name?.lastname}`}</Text>:''}
+                {bookedSlots.includes(slot.id) === true? <Tooltip title={`${name?.name} ${name?.lastname}`} id={slot.id} color='grey' placement='left'><Text>{`${name?.name}`}</Text></Tooltip>:''}
             </BoxContainer>
         </Tooltip>
     )
